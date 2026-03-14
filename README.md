@@ -1,4 +1,4 @@
-# OOP rühmatöö plaan
+# Online Chat Pirukas
 
 ## Liikmed
 
