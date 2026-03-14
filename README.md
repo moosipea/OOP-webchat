@@ -10,7 +10,7 @@
 ## Funktsioonide prioriteedid:
 
 1. Reaalajas sõnumivahetus (localhost)
-Localhost >> üle võrgu: https://websocket.org/guides/languages/java/
+- Localhost >> üle võrgu: https://websocket.org/guides/languages/java/
 - inimeselt inimesele (serveri kaudu)
 
 2. Vestluste salvestamine
