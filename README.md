@@ -14,11 +14,10 @@ Localhost >> üle võrgu: https://websocket.org/guides/languages/java/
 - inimeselt inimesele (serveri kaudu)
 
 2. Vestluste salvestamine
-https://github.com/xerial/sqlite-jdbc
-Sõnumite editimine?
+- https://github.com/xerial/sqlite-jdbc
+- Sõnumite editimine?
 
 3. Lisakasutajad, paroolid, krüpteerimine
-
 4. Grupid, privileegid
 5. UI
 6. Sõnumite formatting
