@@ -1,44 +1,46 @@
-# Online Chat Pirukas
+# OOP rühmatöö plaan
 
-## Liikmed
-
-- Oskar Austa (github: oskarasd123)
-- Mihkel Matto (github: mihkelmatto)
-- Raimond Olle (github: RaimondOlle)
-- Mattias Volt (github: moosipea)
-
-## Funktsioonide prioriteedid:
-
-1. Reaalajas sõnumivahetus (localhost)
-- Localhost >> üle võrgu: https://websocket.org/guides/languages/java/
-- inimeselt inimesele (serveri kaudu)
-
-2. Vestluste salvestamine
-- https://github.com/xerial/sqlite-jdbc
-- Sõnumite editimine?
-
-3. Lisakasutajad, paroolid, krüpteerimine
-4. Grupid, privileegid
-5. UI
-6. Sõnumite formatting
+Online chat rakendus (server + klient).
+**Liikmed**
+Oskar Austa (github: oskarasd123)
+Mihkel Matto (github: mihkelmatto)
+Raimond Olle (github: RaimondOlle
+Mattias Volt (github: moosipea)
 
 
 
-## Märkmed
+## Põhifunktsionaalsused (peab kindlasti olema):
+-   reaalajas sõnumivahetus
+	-   kasutajalt kasutajale
+	-   kasutajalt kanalisse
+-   sõnumite salvestamine
+	-   serveris andmebaas   
+	-   kliendis andmebaas
+	-   ühendades küsib klient serverilt sõnumeid, mis vahepeal saadetud on
 
-- IRC stiilis juturuum
-- una meid on neli tükki, siis nii klient kui server javas
-- _ei ühildu ametliku IRC protokolliga_ (sest seda oleks ilgelt tüütu teha)
-- Websocket. Protokollid selle peal.
-- autentimine, session tokenid, (loodetavasti) turvaline suhtlus. 
-- korrektne krüpto on hästi keeruline, selle projekti raames me sajaprotsendilise turvalisuse poole ei püüdle. siiski sooviks vältida lihtsamaid asju, näiteks salasõnade hoiustamist tekstikujul.
-- privaatsed sõnumid konkreetsete kasutajate vahel
-- erinevad kanalid/grupi chatid
-- käsud (näiteks /dm, /motd, jne)
-- javafx gui vms. ei pea üleliia keeruline olema.
-- kliendi poolel markdown renderdamine. Ei ole vaja markdowni täisfunktsionaalsust. näiteks pilte ilmselt ei hakka panema (kuna tegemist on ennekõike tekstisuhtlusega). samuti ei toeta htmli ja selliseid asju. Põhimõtteliselt lihtsalt tavaline formattimine nagu bold, kaldkiri, lingid, muu selline.
-- klient peaks tuvastama, kui kasutajat on pingitud @kasutajanimi süntaksiga
-- kasutajatel rollid, privileegid
-- klient peaks ühendades saama kõik vahepeal saadetud sõnumid, st mitte ainult reaalajasuhtlus. niisiis serveri poole peal andmebaas
-- igal kasutajal on nime järgi genereeritud värv
-- võimalik on näha kasutaja online-staatust.
+
+
+## Kõrvalfunktsionaalsused (võiks olla ka):
+
+**lihtne graafiline UI kliendile**
+
+-   kasutajate autentimine, salasõnaga ühendamine
+-   sõnumite otsimine, filtreerimine
+-   sõnumite editimine ja kustutamine (editimisel vastav märge)
+-   grupichatid
+	-   kasutajate privileegid
+	-   Kliendi ja serveri käsud (nagu /dm, /motd vms)
+    
+-   visuaalsed elemendid
+	-   sõnumite formatting ja renderdamine (Markdown või selle laadne)
+	-   kasutajate pingimine @kasutajanimi süntaksiga 
+	-   kasutajatele on määratud värv (kasutajanime järgi)
+	-   võimalik on näha teiste kasutajate online-staatust
+    
+
+**Turvalisus**
+
+-   ideaalis tahaks, et ühendus oleks võimalikult turvaline
+-   suhtlusprotokoll võiks olla selline, et sama hästi on kasutatav GUI klient ja command-line klient.
+	-   projekti raames teeme ennekõike GUI kliendi
+	-   kui aega jääb, võib ka command-line kliendi teha
