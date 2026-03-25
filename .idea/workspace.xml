@@ -4,10 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="nüüd on failid õiges kohas">
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="hello world gui">
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageComponent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageList.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/Style.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/TextSection.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/main/resources/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/client/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/Connection.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/Connection.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +50,9 @@
   "keyToString": {
     "JAR Application.client-1.0-SNAPSHOT.jar.executor": "Run",
     "JAR Application.server-1.0-SNAPSHOT.jar.executor": "Run",
+    "Maven.pirukas [javafx:run].executor": "Run",
+    "Maven.pirukas [jfx:run].executor": "Run",
+    "Maven.pirukas [package].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
@@ -52,6 +60,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "git-widget-placeholder": "basic__client",
     "kotlin-language-version-configured": "true",
+    "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "preferences.keymap",
     "vue.rearranger.settings.migration": "true"
   }
@@ -60,6 +69,13 @@
     <key name="MoveFile.RECENT_KEYS">
       <recent name="\\wsl.localhost\Ubuntu\home\mattiasvolt\Projects\OOP-webchat\common\src\main\java\common" />
     </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn package" />
+      <command value="mvn jfx:run" />
+      <command value="mvn javafx:run" />
+    </option>
   </component>
   <component name="RunManager" selected="JAR Application.client-1.0-SNAPSHOT.jar">
     <configuration name="client-1.0-SNAPSHOT.jar" type="JarApplication" temporary="true">
@@ -94,7 +110,7 @@
       <updated>1774352298106</updated>
       <workItem from="1774352300039" duration="3361000" />
       <workItem from="1774427378261" duration="1894000" />
-      <workItem from="1774442676453" duration="192000" />
+      <workItem from="1774442676453" duration="4428000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
@@ -112,7 +128,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774428490337</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="hello world gui">
+      <option name="closed" value="true" />
+      <created>1774443123286</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1774443123286</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -121,6 +145,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="pom.xml failid" />
     <MESSAGE value="nüüd on failid õiges kohas" />
-    <option name="LAST_COMMIT_MESSAGE" value="nüüd on failid õiges kohas" />
+    <MESSAGE value="hello world gui" />
+    <option name="LAST_COMMIT_MESSAGE" value="hello world gui" />
   </component>
 </project>
