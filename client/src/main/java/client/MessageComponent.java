@@ -18,7 +18,6 @@ public class MessageComponent extends TextFlow {
         FormattingParser formattingParser = new FormattingParser(rawContent);
         while (formattingParser.hasNext()) {
             TextSection section = formattingParser.next();
-            System.out.println("section = " + section);
             getChildren().add(section.asLabel());
         }
 

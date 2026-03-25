@@ -4,15 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="hello world gui">
-      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageComponent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageList.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/Style.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/TextSection.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/main/resources/style.css" afterDir="false" />
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="formatted teksti renderimine">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/Connection.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/Connection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/MessageComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageComponent.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +30,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="DEPENDENCY_CHECKER_PROBLEMS_TAB" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -110,7 +105,7 @@
       <updated>1774352298106</updated>
       <workItem from="1774352300039" duration="3361000" />
       <workItem from="1774427378261" duration="1894000" />
-      <workItem from="1774442676453" duration="4428000" />
+      <workItem from="1774442676453" duration="6372000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
@@ -136,7 +131,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774443123286</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="formatted teksti renderimine">
+      <option name="closed" value="true" />
+      <created>1774447266099</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1774447266099</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,6 +149,7 @@
     <MESSAGE value="pom.xml failid" />
     <MESSAGE value="nüüd on failid õiges kohas" />
     <MESSAGE value="hello world gui" />
-    <option name="LAST_COMMIT_MESSAGE" value="hello world gui" />
+    <MESSAGE value="formatted teksti renderimine" />
+    <option name="LAST_COMMIT_MESSAGE" value="formatted teksti renderimine" />
   </component>
 </project>
