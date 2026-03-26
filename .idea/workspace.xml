@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="rohkem sõnumeid">
-      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageScene.java" afterDir="false" />
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="vaade eraldi stseeni klassis ja kanalite vaade vasakul">
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/LoginScene.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
     </list>
@@ -105,7 +105,7 @@
       <updated>1774352298106</updated>
       <workItem from="1774352300039" duration="3361000" />
       <workItem from="1774427378261" duration="1894000" />
-      <workItem from="1774442676453" duration="9046000" />
+      <workItem from="1774442676453" duration="10179000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
@@ -147,7 +147,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774449158167</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="vaade eraldi stseeni klassis ja kanalite vaade vasakul">
+      <option name="closed" value="true" />
+      <created>1774522472602</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1774522472602</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -159,6 +167,7 @@
     <MESSAGE value="hello world gui" />
     <MESSAGE value="formatted teksti renderimine" />
     <MESSAGE value="rohkem sõnumeid" />
-    <option name="LAST_COMMIT_MESSAGE" value="rohkem sõnumeid" />
+    <MESSAGE value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
+    <option name="LAST_COMMIT_MESSAGE" value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
   </component>
 </project>

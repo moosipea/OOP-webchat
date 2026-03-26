@@ -1,9 +1,12 @@
 package client;
 
 import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class ClientMain extends Application {
+    private Stage stage = null;
+    private String stylesheet = null;
 
     public static void main(String[] args) {
         launch(args);
@@ -11,12 +14,24 @@ public class ClientMain extends Application {
 
     @Override
     public void start(Stage stage) {
-        MessageScene scene = new MessageScene(640, 480);
-        String styleSheet = String.valueOf(getClass().getResource("/style.css"));
-        scene.getStylesheets().add(styleSheet);
+        // See värk on ilgelt kahtlane
+        this.stage = stage;
 
-        stage.setScene(scene);
-        stage.setTitle("Hello, world");
+        LoginScene scene = new LoginScene(this::switchScene, 640, 480);
+        switchScene(scene);
+
         stage.show();
+    }
+
+    private String getStyleSheet() {
+        if (stylesheet == null) {
+            stylesheet = String.valueOf(getClass().getResource("/style.css"));
+        }
+        return stylesheet;
+    }
+
+    private void switchScene(Scene scene) {
+        scene.getStylesheets().add(getStyleSheet());
+        stage.setScene(scene);
     }
 }
