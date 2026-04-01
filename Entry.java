@@ -3,9 +3,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 public class Entry {
-    private int index;
-    private User sender;
-    private LocalDateTime timestamp; // "mm:hh-dd:mm:yyyy", // timezone? 
+    private final int index;
+    private final User sender;
+    private final LocalDateTime timestamp;
     private String content;
 
     public Entry(int index, User sender, String content){
@@ -32,5 +32,9 @@ public class Entry {
 
     public int getIndex(){
         return this.index;
+    }
+
+    public User getSender(){
+        return this.sender;
     }
 }

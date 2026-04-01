@@ -1,17 +1,20 @@
 public class Main {
     public static void main(String[] args) {
+        int serverConvID = 0;
+
+        User owner = new User("owner");
         User[] users = {new User("user1"), new User("user2")};
 
-        Conversation conversation = new Conversation(0, users[0]);
-        conversation.addMember(users[0], users[1]);
-        
+        owner.createConv(0, users);
+        Conversation conv = owner.getConvs().get(serverConvID++);
+        conv.setConvName("abcde");
 
         for(int i = 0; i<users.length; i++){
-            conversation.addMessage(users[i], String.format("Message %s content", i));
+            users[i].addMessage(conv, String.format("Message %s content", i));
         }
 
-        conversation.printAll();
+        conv.printAll();
 
-        System.out.println(conversation);
+        System.out.println(conv);
     }
 }

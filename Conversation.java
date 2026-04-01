@@ -5,42 +5,40 @@ public class Conversation {
     private User owner;
     private ArrayList<User> members;
     private ArrayList<Entry> messages;
-
     private int entryID;
 
-    /*
-    convID - unique id for this conversation.
-        TODO: automatically manage id
+    // customization
+    private String convName;
 
-    owner - has permissions to add/remove members
+    /*
+    convID      unique id for this conversation.
+    owner       has permissions to add/remove members
+    messages    ArrayList<Entry>, see Entry class for more info
+    entryID     internal counter & instance field value for entries. !! Dont change outside of this.addmessage()
     
     members: internal users list
         can be managed by owner
         used for:
         - creating entries to this.messages
-        - TODO: validation for server>user sync 
-
-    messages: ArrayList<Entry>, see Entry class for more info
-    entryID: internal counter & instance field value for entries. !! Dont change outside of this.addmessage()
-
-
-    TODO: Check access modifiers for all classes in the branch
+        - validation for server>user sync 
     */
 
     public Conversation(int convID, User owner){
+        // init
         this.convID = convID;
         this.owner = owner;
         this.members = new ArrayList<User>();
         this.messages = new ArrayList<Entry>();
         this.entryID = 0;
+        this.convName = String.format("%s's chat", owner.getUsername());
 
+        // other
         this.members.add(owner);
-
         System.out.printf("Chat created with ID: %s\n", this.convID);
     }
 
     /*
-    Addmember:
+    Validation:
     - only usable by owner
     - no duplicates
     */
@@ -70,8 +68,6 @@ public class Conversation {
     }
 
     /*
-    Removes a member from the conversation
-
     Validation:
     - only owners can remove other Users
     - users can use this to leave
@@ -116,18 +112,59 @@ public class Conversation {
     }
 
     /*
-    
     Manage messages
-
     */
 
-    void addMessage(User sender, String message){
-        this.messages.add(new Entry(this.entryID++, sender, message));
+    void addEntry(User caller, String message){
+        // validation
+        if(!members.contains(caller)){
+            System.out.printf("Message failed: %s is not in this conversation\n", caller.getUsername());
+            return;
+        }
+        // add message
+        this.messages.add(new Entry(this.entryID++, caller, message));
     }
 
-    void removeMessage(Entry message){
-        this.messages.remove(message);
+    /*
+    Validation:
+    - has to be a member
+    - has to be the author of this entry
+    */
+    void removeEntry(User caller, Entry entry){
+        String msg = null;
+        boolean validrequest = true;
+
+        // validation
+        if(!members.contains(caller)){
+            validrequest = false;
+            msg = String.format("%s is not in this conversation", caller.getUsername());
+        }
+        else if(entry.getSender().equals(caller)){
+            validrequest = false;
+            msg = "message can only be deleted by the author";   
+        }
+        else if(!messages.contains(entry)){
+            validrequest = false;
+            msg = "Message not found";
+        }
+
+        // error message
+        if(!validrequest){
+            System.out.printf("Message deletion failed: %s\n", msg);
+            return;
+        }
+
+        // deletion
+        this.messages.remove(entry);
     }
+
+    /*
+    Customization
+    */
+    public void setConvName(String name){
+        this.convName = name;
+    }
+
 
     /*
     Get chat info (String, print)
@@ -141,15 +178,14 @@ public class Conversation {
         System.out.println("");
     }
 
-    // Owner -> username
     @Override
     public String toString(){
         return String.format("""
-                Chat ID: %s
+                Chat name: %s
                 Owner: %s
                 Members: %s
                 Message count: %s
-                """,this.convID, this.owner.getUsername(), this.strMembers(), this.messages.size());
+                """,this.convName, this.owner.getUsername(), this.strMembers(), this.messages.size());
     }
 
     private String strMembers(){
