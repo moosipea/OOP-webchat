@@ -17,10 +17,22 @@ public class Conversation {
     entryID     internal counter & instance field value for entries. !! Dont change outside of this.addmessage()
     
     members: internal users list
-        can be managed by owner
         used for:
         - creating entries to this.messages
-        - validation for server>user sync 
+        - validation for server>user sync?
+
+
+
+    !! Methods without an access modifier are meant to be called from User.java (TODO: option to use server-side admin cmds?)
+
+    Permissions for regular users:
+    - send, delete, edit their messages (TODO: edit messages)
+    - leave the server via removemember
+
+    Additional permissions for chat's owner:
+    - add/remove any users
+    - can't leave the chat unless they are the last person (TODO)
+    - transfer ownership (TODO)
     */
 
     public Conversation(int convID, User owner){
