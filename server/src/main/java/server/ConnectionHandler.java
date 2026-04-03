@@ -42,6 +42,8 @@ public class ConnectionHandler implements Runnable, Closeable {
             while (!Thread.currentThread().isInterrupted()) {
                 pollAndSendMessages(out);
             }
+
+            receiver.interrupt();
         } catch (IOException ignored) {
             // TODO: log error, but don't crash!
         } finally {
