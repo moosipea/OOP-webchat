@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="mingi login tüüpi asi. praegu tegelt ei kontrolli kasutajatunnuseid, ainult visuaal">
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" afterDir="false" />
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="interruptime receiver threadi siis kui ühendus lõpema peaks">
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/LoginScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/LoginScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/MessageScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/MessageScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,7 +176,31 @@
       <option name="project" value="LOCAL" />
       <updated>1774522472602</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="server, mis nagu vist töötab maybe">
+      <option name="closed" value="true" />
+      <created>1775241320376</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1775241320376</updated>
+    </task>
+    <task id="LOCAL-00008" summary="seletus readmes">
+      <option name="closed" value="true" />
+      <created>1775241556698</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1775241556698</updated>
+    </task>
+    <task id="LOCAL-00009" summary="interruptime receiver threadi siis kui ühendus lõpema peaks">
+      <option name="closed" value="true" />
+      <created>1775241632171</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1775241632171</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -188,6 +213,9 @@
     <MESSAGE value="formatted teksti renderimine" />
     <MESSAGE value="rohkem sõnumeid" />
     <MESSAGE value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
-    <option name="LAST_COMMIT_MESSAGE" value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
+    <MESSAGE value="server, mis nagu vist töötab maybe" />
+    <MESSAGE value="seletus readmes" />
+    <MESSAGE value="interruptime receiver threadi siis kui ühendus lõpema peaks" />
+    <option name="LAST_COMMIT_MESSAGE" value="interruptime receiver threadi siis kui ühendus lõpema peaks" />
   </component>
 </project>

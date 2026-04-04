@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConnectionHandler implements Runnable, Closeable {
-    private final Queue<String> localMessageEvents = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<String> localMessageEvents = new LinkedBlockingQueue<>();
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers;
     private final Socket clientSocket;
 
@@ -29,7 +29,7 @@ public class ConnectionHandler implements Runnable, Closeable {
                         String line = in.readLine();
                         if (line != null) {
                             System.out.println("line = " + line);
-                            broadcastMessage(line, true);
+                            broadcastMessage(line, false);
                         }
                     } catch (IOException ignored) {
                         // TODO: log exception, but don't crash!
@@ -40,12 +40,15 @@ public class ConnectionHandler implements Runnable, Closeable {
             addClientMessage("Welcome to the test server!");
 
             while (!Thread.currentThread().isInterrupted()) {
-                pollAndSendMessages(out);
+                String message = localMessageEvents.take();
+                out.println(message);
             }
 
             receiver.interrupt();
         } catch (IOException ignored) {
-            // TODO: log error, but don't crash!
+            // TODO: log exception, but don't crash!
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             close();
         }
@@ -54,15 +57,6 @@ public class ConnectionHandler implements Runnable, Closeable {
     @Override
     public void close() {
         allConnectionHandlers.remove(this);
-    }
-
-    private void pollAndSendMessages(PrintWriter out) {
-        String newMessage;
-
-        while ((newMessage = localMessageEvents.poll()) != null) {
-            out.write(newMessage + "\n");
-            out.flush();
-        }
     }
 
     private synchronized void addClientMessage(String message) {
