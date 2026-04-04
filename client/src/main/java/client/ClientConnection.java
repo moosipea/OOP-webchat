@@ -15,7 +15,7 @@ public class ClientConnection implements Runnable {
     private final InetAddress ip;
     private final int port;
 
-    private LinkedBlockingQueue<String> queuedMessages = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<String> queuedMessages = new LinkedBlockingQueue<>();
     private Consumer<String> onMessageReceived = null;
 
     public ClientConnection(String username, String ip, String port) throws UnknownHostException {
