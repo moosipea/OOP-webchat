@@ -1,6 +1,9 @@
 package client.formatting;
 
-// See võiks mingi bit field olla
+/**
+ * Kirjeldab tekstilõigu stiili.
+ * TODO: see võiks mingi bitfield vms olla.
+ */
 public class Style {
     private boolean italic;
     private boolean bold;

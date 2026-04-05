@@ -12,7 +12,12 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
+/**
+ * Stseen sõnumite vaateks. Saab vahetada kanaleid (TBD), kirjutada sõnumeid
+ * ja lugeda sõnumeid.
+ */
 public class MessageScene extends Scene {
+    // Kõik sõnumid UI komponentidena.
     private final MessageList messages;
 
     public MessageScene(ClientConnection conn, double w, double h) {
@@ -29,25 +34,18 @@ public class MessageScene extends Scene {
         messages.heightProperty().addListener((obs, oldValue, newValue) -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
 
         // Sõnumite kirjutamiseks
-        TextField messageField = new TextField();
-        messageField.setOnAction(e -> {
-            if (messageField.getText().isEmpty()) {
-                return;
-            }
-            conn.sendMessage(messageField.getText());
-            messageField.clear();
-            Platform.runLater(() -> scrollPane.setVvalue(1.0));
-        });
+        TextField messageField = createMessageField(conn, scrollPane);
 
-        // Ekraani parempoolne osa
-        VBox messagesRoot = new VBox();
+        // Ekraani parempoolne osa (sõnumid ja kast sõnumi kirjutamiseks)
+        VBox messagesRoot = new VBox(scrollPane, messageField);
         HBox.setHgrow(messagesRoot, Priority.ALWAYS);
-        messagesRoot.getChildren().addAll(scrollPane, messageField);
 
         // Vasakpoolne osa, kus on kanalid
+        // TODO: see on ainult UI testimiseks, tuleks küsida kanalite nimekirja serverilt.
         VBox channelList = createChannelList(List.of("#general", "#ch1", "#ch2"));
 
         // Lõpuks vahetame rooti välja
+        // TODO: kindlasti seda saab kuidagi ilusamalt teha, see on hästi rõve.
         HBox root = new HBox(channelList, messagesRoot);
         setRoot(root);
 
@@ -56,6 +54,45 @@ public class MessageScene extends Scene {
         Thread.ofVirtual().start(conn);
     }
 
+    /**
+     * Initsialiseerib tekstikastikese sõnumite kirjutamiseks.
+     *
+     * @param conn       viit ühendusele serveriga.
+     * @param scrollPane viit ScrollPane'ile, mis sisaldab sõnumeid.
+     * @return loodud tekstikastike koos oma event handler'iga.
+     */
+    private static TextField createMessageField(ClientConnection conn, ScrollPane scrollPane) {
+        TextField messageField = new TextField();
+
+        // Kui vajutatakse enter, st tahetakse kirjutatut ära saata.
+        messageField.setOnAction(e -> {
+            // Tühi, edasi pole midagi teha.
+            if (messageField.getText().isEmpty()) {
+                return;
+            }
+
+            // Saadame ära.
+            conn.queueMessage(messageField.getText());
+
+            // Teeme tekstikastikese tühjaks.
+            messageField.clear();
+
+            // Skrollime alla.
+            // TODO: miks on see vajalik, kui scrollPane peaks juba ise seda tegema (vt MessageScene konstruktorit).
+            Platform.runLater(() -> scrollPane.setVvalue(1.0));
+        });
+
+        return messageField;
+    }
+
+    /**
+     * Initsialiseerib kanalite nimekirja (iga kanal on nupp).
+     *
+     * @param channels kanalite nimed.
+     * @return VBox, mis sisaldab kanaleid nuppudena.
+     */
+    // TODO: see oli kasulik UI testimiseks, aga kui kanalite nimekiri hakkab
+    //  tulema serverilt, peab selle ümber tegema.
     private static VBox createChannelList(List<String> channels) {
         VBox channelList = new VBox();
         channelList.setFillWidth(true);
@@ -69,9 +106,18 @@ public class MessageScene extends Scene {
         return channelList;
     }
 
-    private synchronized void addMessageToUI(String content) {
+    /**
+     * Lisab sõnumi sõnumite nimekirja. Seda meetodit võib välja kutsuda teisest
+     * lõimest!
+     *
+     * @param content sõnumi sisu (praegu sõnena, peaks ümber tegema)
+     */
+    private void addMessageToUI(String content) {
+        // Platform.runLater() paneb selle lambda kuskile järjekorda ja see
+        // täidetakse hiljem. Otse ei tohi me teisest lõimest JavaFX olekut
+        // muuta, sest see teeks kõik katki.
         Platform.runLater(() -> {
-            String username = "kasutaja"; // todo
+            String username = "kasutaja"; // TODO
             messages.addMessage(username, content);
         });
     }
