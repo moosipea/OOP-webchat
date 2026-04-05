@@ -19,7 +19,9 @@ public class ConnectionHandler implements Runnable, Closeable {
     public void run() {
         allConnectionHandlers.add(this);
 
-        try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        // TODO: kogu selles asjas on vaja tagada, et see thread viisakalt
+        //  ennast ära tapab siis, kui klient ühenduse katkestab.
+        try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
              BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
         ) {
             Thread receiver = Thread.ofVirtual().start(() -> {
@@ -30,7 +32,7 @@ public class ConnectionHandler implements Runnable, Closeable {
                             broadcastMessage(line, false);
                         }
                     } catch (IOException ignored) {
-                        // TODO: log exception, but don't crash!
+                        break;
                     }
                 }
             });
@@ -40,6 +42,7 @@ public class ConnectionHandler implements Runnable, Closeable {
             while (!Thread.currentThread().isInterrupted()) {
                 String message = localMessageEvents.take();
                 out.println(message);
+                out.flush(); // TODO: tegelt pole hea iga kord flushida, aga see tekitas varem mingeid probleeme
             }
 
             receiver.interrupt();
@@ -57,7 +60,8 @@ public class ConnectionHandler implements Runnable, Closeable {
         allConnectionHandlers.remove(this);
     }
 
-    private synchronized void queueClientMessage(String message) {
+    // Varem oli see synchronized, aga nüüd vist pole tarvis?
+    private void queueClientMessage(String message) {
         localMessageEvents.add(message);
     }
 

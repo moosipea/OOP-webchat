@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 public class ClientConnection implements Runnable {
-    private final String username;
+    private final String username; // TODO: Midagi sellega peale hakata? Ei tea.
     private final InetAddress ip;
     private final int port;
 
@@ -27,6 +27,8 @@ public class ClientConnection implements Runnable {
     @Override
     public void run() {
         try (Socket sock = new Socket(ip, port)) {
+            // TODO: siin on hästi sarnane kood serveri ConnectionHandler
+            //  klassile, äkki saaks mingi ilusama abstraktsiooni teha?
             try (PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
                  BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {
 
@@ -37,7 +39,6 @@ public class ClientConnection implements Runnable {
                             String line = in.readLine();
                             // TODO: kontrollida, et onMessageReceived ei ole null
                             if (line != null) {
-                                System.out.println(line);
                                 onMessageReceived.accept(line);
                             }
                         } catch (IOException ignored) {
@@ -46,10 +47,10 @@ public class ClientConnection implements Runnable {
                     }
                 });
 
-                // TODO: handle sending of messages
                 while (!Thread.currentThread().isInterrupted()) {
                     String messageToBeSent = queuedMessages.take();
                     out.println(messageToBeSent);
+                    out.flush();
                 }
 
                 receiver.interrupt();
