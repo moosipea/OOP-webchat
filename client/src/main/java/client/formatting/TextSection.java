@@ -2,6 +2,9 @@ package client.formatting;
 
 import javafx.scene.control.Label;
 
+/**
+ * Esindab tekstilõiku, millel on ühene stiil.
+ */
 public class TextSection {
     private final CharSequence content;
     private final Style style;
@@ -12,9 +15,9 @@ public class TextSection {
     }
 
     /**
-     * Transforms the text section into a sequence of ANSI terminal codes,
-     * suitable for printing in the terminal.
-     * @return styled text
+     * Tagastab stiiliga sisu kujul, mis on sobilik terminali trükkimiseks.
+     *
+     * @return ANSI koodidega sisu
      */
     public String asANSIFormatted() {
         StringBuilder sb = new StringBuilder();
@@ -32,9 +35,14 @@ public class TextSection {
         return sb.toString();
     }
 
+    /**
+     * Tagastab stiiliga sisu.
+     * @return stiiliga sisu, seekord JavaFX komponendina.
+     */
     public Label asLabel() {
         Label label = new Label(content.toString());
 
+        // Need stiilid on defineeritud stylesheet'is, vt ressursse.
         if (style.isBold()) label.getStyleClass().add("pirukas-bold");
         if (style.isItalic()) label.getStyleClass().add("pirukas-italic");
         if (style.isMention()) label.getStyleClass().add("pirukas-mention");

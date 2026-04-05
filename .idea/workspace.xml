@@ -4,10 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="vaade eraldi stseeni klassis ja kanalite vaade vasakul">
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="serverile natuke kommentaare">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/formatting/FormattingParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/FormattingParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/formatting/Style.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/Style.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/formatting/TextSection.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/formatting/TextSection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/LoginScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/LoginScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageComponent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageList.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageList.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +114,7 @@
       <workItem from="1774352300039" duration="3361000" />
       <workItem from="1774427378261" duration="1894000" />
       <workItem from="1774442676453" duration="10179000" />
-      <workItem from="1775417741785" duration="906000" />
+      <workItem from="1775417741785" duration="3520000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
@@ -157,7 +164,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774522472602</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="serverile natuke kommentaare">
+      <option name="closed" value="true" />
+      <created>1775418672044</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1775418672044</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,6 +185,7 @@
     <MESSAGE value="formatted teksti renderimine" />
     <MESSAGE value="rohkem sõnumeid" />
     <MESSAGE value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
-    <option name="LAST_COMMIT_MESSAGE" value="vaade eraldi stseeni klassis ja kanalite vaade vasakul" />
+    <MESSAGE value="serverile natuke kommentaare" />
+    <option name="LAST_COMMIT_MESSAGE" value="serverile natuke kommentaare" />
   </component>
 </project>

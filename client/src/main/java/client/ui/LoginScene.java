@@ -12,7 +12,12 @@ import javafx.scene.layout.VBox;
 import java.net.UnknownHostException;
 import java.util.function.Consumer;
 
+/**
+ * Stseen sserveriga ühendamiseks. Kasutaja saab sisaldaad serveri andmed
+ * (IP, port) ja oma kasutajanime ning salasõna (TBD) ning seejärel ühendada.
+ */
 public class LoginScene extends Scene {
+    // TODO: switchScene Consumer'ina tundub nagu halb
     public LoginScene(Consumer<Scene> switchScene, double w, double h) {
         // Jõle kahtlane, aga see töötab
         super(new VBox(), w, h);
@@ -23,6 +28,7 @@ public class LoginScene extends Scene {
         PasswordField passField = new PasswordField();
         Button loginButton = new Button("Connect");
 
+        // Kui nuppu on vajutatud:
         loginButton.setOnAction(e -> {
             // TODO: selle kontrolli võiks liigutada ClientConnection konstruktorisse
             if (ipField.getText().isEmpty() || userField.getText().isEmpty() || passField.getText().isEmpty()) {
