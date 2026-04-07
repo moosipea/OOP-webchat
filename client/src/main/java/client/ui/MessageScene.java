@@ -19,6 +19,12 @@ public class MessageScene extends Scene {
         // Midagi peame parentiks panema, paneme HBox
         super(new HBox(), w, h);
 
+        // Ekraani vasakpoolne osa, kus on kanalid
+        ChannelList channelList = new ChannelList();
+        channelList.addChannel("#general");
+        channelList.addChannel("#ch1");
+        channelList.addChannel("#ch2");
+
         // Sõnumite vaade
         messages = new MessageList();
         ScrollPane scrollPane = new ScrollPane(messages);
@@ -34,7 +40,7 @@ public class MessageScene extends Scene {
             if (messageField.getText().isEmpty()) {
                 return;
             }
-            conn.sendMessage(messageField.getText());
+            conn.sendMessage(channelList.getActiveChannel(), messageField.getText());
             messageField.clear();
             Platform.runLater(() -> scrollPane.setVvalue(1.0));
         });
@@ -44,8 +50,6 @@ public class MessageScene extends Scene {
         HBox.setHgrow(messagesRoot, Priority.ALWAYS);
         messagesRoot.getChildren().addAll(scrollPane, messageField);
 
-        // Vasakpoolne osa, kus on kanalid
-        VBox channelList = createChannelList(List.of("#general", "#ch1", "#ch2"));
 
         // Lõpuks vahetame rooti välja
         HBox root = new HBox(channelList, messagesRoot);
@@ -56,20 +60,7 @@ public class MessageScene extends Scene {
         Thread.ofVirtual().start(conn);
     }
 
-    private static VBox createChannelList(List<String> channels) {
-        VBox channelList = new VBox();
-        channelList.setFillWidth(true);
-
-        for (String channelName : channels) {
-            Button channelButton = new Button(channelName);
-            channelButton.setMaxWidth(Double.MAX_VALUE);
-            channelList.getChildren().add(channelButton);
-        }
-
-        return channelList;
-    }
-
-    private synchronized void addMessageToUI(String content) {
+    private void addMessageToUI(String content) {
         Platform.runLater(() -> {
             String username = "kasutaja"; // todo
             messages.addMessage(username, content);

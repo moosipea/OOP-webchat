@@ -4,15 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="muudatused :D">
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="kliendile natuke kommentaare + mini-mini parandused">
+      <change afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/ChannelList.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/AbstractPacket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/AddChannelResponsePacket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/GetChannelsRequestPacket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToClientPacket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToServerPacket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/TwoWayConnectionHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/LoginScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/LoginScene.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/MessageComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/MessageList.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/MessageScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/LoginScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/LoginScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/common/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/Connection.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +30,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -29,7 +38,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="serveri_eksperiment" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -46,27 +55,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.ServerMain.executor&quot;: &quot;Run&quot;,
-    &quot;JAR Application.client-1.0-SNAPSHOT.jar.executor&quot;: &quot;Run&quot;,
-    &quot;JAR Application.server-1.0-SNAPSHOT.jar.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pirukas [javafx:run].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pirukas [jfx:run].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pirukas [package].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;serveri__eksperiment&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;//wsl.localhost/Ubuntu/home/mattiasvolt/Projects/OOP-webchat&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.ServerMain.executor": "Run",
+    "JAR Application.client-1.0-SNAPSHOT.jar.executor": "Run",
+    "JAR Application.server-1.0-SNAPSHOT.jar.executor": "Run",
+    "Maven.common [clean].executor": "Run",
+    "Maven.pirukas [javafx:run].executor": "Run",
+    "Maven.pirukas [jfx:run].executor": "Run",
+    "Maven.pirukas [package].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "structured-packets",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "//wsl.localhost/Ubuntu/home/mattiasvolt/Projects/OOP-webchat",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="\\wsl.localhost\Ubuntu\home\mattiasvolt\Projects\OOP-webchat\common\src\main\java\common" />
@@ -130,6 +140,7 @@
       <workItem from="1774427378261" duration="1894000" />
       <workItem from="1774442676453" duration="10179000" />
       <workItem from="1774786043719" duration="1225000" />
+      <workItem from="1775563742687" duration="5554000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
