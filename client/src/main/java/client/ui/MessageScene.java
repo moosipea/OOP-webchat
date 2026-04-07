@@ -12,7 +12,12 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
+/**
+ * Stseen sõnumite vaateks. Saab vahetada kanaleid (TBD), kirjutada sõnumeid
+ * ja lugeda sõnumeid.
+ */
 public class MessageScene extends Scene {
+    // Kõik sõnumid UI komponentidena.
     private final MessageList messages;
 
     public MessageScene(ClientConnection conn, double w, double h) {
@@ -45,13 +50,12 @@ public class MessageScene extends Scene {
             Platform.runLater(() -> scrollPane.setVvalue(1.0));
         });
 
-        // Ekraani parempoolne osa
-        VBox messagesRoot = new VBox();
+        // Ekraani parempoolne osa (sõnumid ja kast sõnumi kirjutamiseks)
+        VBox messagesRoot = new VBox(scrollPane, messageField);
         HBox.setHgrow(messagesRoot, Priority.ALWAYS);
-        messagesRoot.getChildren().addAll(scrollPane, messageField);
-
 
         // Lõpuks vahetame rooti välja
+        // TODO: kindlasti seda saab kuidagi ilusamalt teha, see on hästi rõve.
         HBox root = new HBox(channelList, messagesRoot);
         setRoot(root);
 

@@ -10,9 +10,17 @@ import java.net.Socket;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Haldab ühe kliendi ühendust serveriga.
+ */
 public class ConnectionHandler implements Runnable, Closeable {
+    // Packetite järjekord.
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+
+    // Viit kõikide aktiivsete ühenduste hulgale (vajame seda registreerimiseks).
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers;
+
+    // Socket, mille kaudu suhtlus kliendiga käib.
     private final Socket clientSocket;
 
     public ConnectionHandler(CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers, Socket clientSocket) {
@@ -20,10 +28,13 @@ public class ConnectionHandler implements Runnable, Closeable {
         this.clientSocket = clientSocket;
     }
 
+    /**
+     * Käivitab ühenduse kliendiga.
+     */
     @Override
     public void run() {
-        allConnectionHandlers.add(this);
-
+        // Registreerime oma ühenduse.
+        register();
 
         // TODO: kogu selles asjas on vaja tagada, et see thread viisakalt
         //  ennast ära tapab siis, kui klient ühenduse katkestab.
@@ -44,8 +55,11 @@ public class ConnectionHandler implements Runnable, Closeable {
                 }
             });
 
+            // Siia võib panna mingi muu welcome sõnumi või mis iganes peab
+            // toimuma siis, kui klient ühendab.
             queueClientMessage("Welcome to the test server!");
 
+            // Sõnumeid *saadetakse* selles lõimes.
             while (!Thread.currentThread().isInterrupted()) {
                 AbstractPacket packetToBeSent = queuedPackets.take();
                 objectMapper.writeValue(out, packetToBeSent);
@@ -58,20 +72,40 @@ public class ConnectionHandler implements Runnable, Closeable {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            close();
+            unregister();
         }
     }
 
-    @Override
-    public void close() {
+    /**
+     * Lisab selle ühenduse aktiivsete ühenduste hulka.
+     */
+    private void register() {
+        allConnectionHandlers.add(this);
+    }
+
+    /**
+     * Eemaldab selle ühenduse aktiivsete ühenduste hulgast.
+     */
+    private void unregister() {
         allConnectionHandlers.remove(this);
     }
 
+    /**
+     * Lisab sõnumi selle ühenduse sõnumite järjekorda.
+     *
+     * @param message sõnum sõnena
+     */
     private void queueClientMessage(String message) {
         // TODO
         // queuedPackets.add(message);
     }
 
+    /**
+     * Edastab antud sõnumi kõigile teistele ühendatud klientidele.
+     *
+     * @param message    sõnum sõnena
+     * @param ignoreSelf kas on tarvis ka saatjale tagasi saata?
+     */
     private void broadcastMessage(String message, boolean ignoreSelf) {
         for (ConnectionHandler conn : allConnectionHandlers) {
             if (ignoreSelf && conn == this) {

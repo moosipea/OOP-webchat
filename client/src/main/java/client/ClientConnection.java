@@ -13,7 +13,11 @@ import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
+/**
+ * Haldab kliendi ühendust serveriga.
+ */
 public class ClientConnection implements Runnable {
+    // Serveri detailid.
     private final InetAddress ip;
     private final int port;
 
@@ -25,9 +29,13 @@ public class ClientConnection implements Runnable {
         this.port = Integer.parseInt(port);
     }
 
+    /**
+     * Käivitab ühenduse serveriga.
+     */
+    // TODO: sisemise handleri võiks välja abstraheerida, vt ka sarnast
+    //  handler'it serveri ConnectionHandler klassis.
     @Override
     public void run() {
-
         try (Socket sock = new Socket(ip, port)) {
             // TODO: siin on hästi sarnane kood serveri ConnectionHandler
             //  klassile, äkki saaks mingi ilusama abstraktsiooni teha?
@@ -36,7 +44,7 @@ public class ClientConnection implements Runnable {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonParser jsonParser = objectMapper.getFactory().createParser(sock.getInputStream());
 
-                // TODO: See ei tööta. Miks?
+                // Sõnumite kuulamine eraldi lõimes.
                 Thread receiver = Thread.ofVirtual().start(() -> {
                     try {
                         while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
@@ -50,6 +58,7 @@ public class ClientConnection implements Runnable {
                     }
                 });
 
+                // Sõnumite saatmine siin lõimes.
                 while (!Thread.currentThread().isInterrupted()) {
                     AbstractPacket packetToBeSent = queuedPackets.take();
                     objectMapper.writeValue(out, packetToBeSent);
@@ -66,10 +75,18 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Määrab tegevuse, mis on tarvis teha saabunud sõnumi korral.
+     * @param onMessageReceived event handler
+     */
     public void setOnMessageReceived(Consumer<String> onMessageReceived) {
         this.onMessageReceived = onMessageReceived;
     }
 
+    /**
+     * Lisab sõnumi järjekorda, et see serverile saata.
+     * @param message sõnum.
+     */
     public void sendMessage(String targetChannel, String message) {
         // TODO: check for null
         queuedPackets.add(new MessageToServerPacket(targetChannel, message));
