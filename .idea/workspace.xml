@@ -4,16 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="jackson packetite jaoks, natuke juba packetitele süsteem üle viidud, aga mite lõplikult">
+    <list default="true" id="90b41639-bd56-43f6-af8f-05ff91505e64" name="Changes" comment="vähemalt mingi jsoni edastamine töötab nüüd">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ClientConnection.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/client/ui/MessageScene.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/networking/AddChannelResponsePacket.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/AddChannelResponsePacket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToClientPacket.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToClientPacket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToServerPacket.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/MessageToServerPacket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/common/networking/TwoWayConnectionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/common/networking/TwoWayConnectionHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/server/ServerConnection.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -134,7 +130,7 @@
       <workItem from="1774442676453" duration="10179000" />
       <workItem from="1774786043719" duration="1225000" />
       <workItem from="1775563742687" duration="6447000" />
-      <workItem from="1775570220353" duration="7184000" />
+      <workItem from="1775570220353" duration="8482000" />
     </task>
     <task id="LOCAL-00001" summary="pom.xml failid">
       <option name="closed" value="true" />
@@ -240,7 +236,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775569347615</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="vähemalt mingi jsoni edastamine töötab nüüd">
+      <option name="closed" value="true" />
+      <created>1775649059784</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1775649059784</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -271,14 +275,15 @@
     <MESSAGE value="mul läks juba meelest, mis ma tegin, aga ju see oli hea :D" />
     <MESSAGE value="muudatused :D" />
     <MESSAGE value="jackson packetite jaoks, natuke juba packetitele süsteem üle viidud, aga mite lõplikult" />
-    <option name="LAST_COMMIT_MESSAGE" value="jackson packetite jaoks, natuke juba packetitele süsteem üle viidud, aga mite lõplikult" />
+    <MESSAGE value="vähemalt mingi jsoni edastamine töötab nüüd" />
+    <option name="LAST_COMMIT_MESSAGE" value="vähemalt mingi jsoni edastamine töötab nüüd" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/server/src/main/java/server/ConnectionHandler.java</url>
-          <line>59</line>
+          <line>57</line>
           <option name="timeStamp" value="6" />
         </line-breakpoint>
       </breakpoints>

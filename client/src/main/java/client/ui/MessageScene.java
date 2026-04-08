@@ -24,9 +24,6 @@ public class MessageScene extends Scene {
 
         // Ekraani vasakpoolne osa, kus on kanalid
         ChannelList channelList = new ChannelList();
-        channelList.addChannel("#general");
-        channelList.addChannel("#ch1");
-        channelList.addChannel("#ch2");
 
         // Sõnumite vaade
         messages = new MessageList();
@@ -46,8 +43,16 @@ public class MessageScene extends Scene {
         setRoot(root);
 
         // Kui UI on loodud, kleebime sinna otsa ühenduse serveriga
-        conn.setOnMessageReceived(this::addMessageToUI);
+        conn.setOnMessageReceived((msg) -> Platform.runLater(() -> {
+            messages.addMessage("placeholder", msg.getContent());
+        }));
+
+        conn.setOnChannelAdded((channel) -> Platform.runLater(() -> {
+            channelList.addChannel(channel.getChannelName());
+        }));
+
         Thread.ofVirtual().start(conn); // See võib failida, peaks tagasi login ekraanile viskama
+        conn.requestChannelList();
     }
 
     /**
@@ -72,12 +77,5 @@ public class MessageScene extends Scene {
         VBox messagesRoot = new VBox(scrollPane, messageField);
         HBox.setHgrow(messagesRoot, Priority.ALWAYS);
         return messagesRoot;
-    }
-
-    private void addMessageToUI(MessageToClientPacket packet) {
-        Platform.runLater(() -> {
-            // TODO:
-            messages.addMessage("placeholder", packet.getContent());
-        });
     }
 }

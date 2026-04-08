@@ -3,10 +3,7 @@ package client;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import common.networking.AbstractPacket;
-import common.networking.AddChannelResponsePacket;
-import common.networking.MessageToClientPacket;
-import common.networking.MessageToServerPacket;
+import common.networking.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +26,9 @@ public class ClientConnection implements Runnable {
     private final int port;
 
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+
     private Consumer<MessageToClientPacket> onMessageReceived = null;
+    private Consumer<AddChannelResponsePacket> onChannelAdded = null;
 
     public ClientConnection(String ip, String port) throws UnknownHostException {
         this.ip = InetAddress.getByName(ip);
@@ -68,9 +67,7 @@ public class ClientConnection implements Runnable {
                 // Sõnumite saatmine siin lõimes.
                 while (!Thread.currentThread().isInterrupted()) {
                     AbstractPacket packetToBeSent = queuedPackets.take();
-                    // objectMapper.writeValue(out, packetToBeSent);
                     String packet = objectMapper.writeValueAsString(packetToBeSent);
-                    System.out.println("packet = " + packet);
                     out.write(packet);
                     out.flush();
                 }
@@ -93,6 +90,10 @@ public class ClientConnection implements Runnable {
         this.onMessageReceived = onMessageReceived;
     }
 
+    public void setOnChannelAdded(Consumer<AddChannelResponsePacket> onChannelAdded) {
+        this.onChannelAdded = onChannelAdded;
+    }
+
     /**
      * Lisab sõnumi järjekorda, et see serverile saata.
      * @param message sõnum.
@@ -106,12 +107,14 @@ public class ClientConnection implements Runnable {
         switch (packet) {
             // TODO: check that onMessageReceived is not null
             case MessageToClientPacket msg -> onMessageReceived.accept(msg);
-            case AddChannelResponsePacket addChannelResponse -> {
-                // TODO: update UI and local state to add channel
-            }
+            case AddChannelResponsePacket addChannelResponse -> onChannelAdded.accept(addChannelResponse);
             default -> {
                 // TODO: report unexpected packet
             }
         }
+    }
+
+    public void requestChannelList() {
+        queuedPackets.add(new GetChannelsRequestPacket());
     }
 }

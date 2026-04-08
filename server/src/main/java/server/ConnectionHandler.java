@@ -3,12 +3,10 @@ package server;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import common.networking.AbstractPacket;
-import common.networking.GetChannelsRequestPacket;
-import common.networking.MessageToClientPacket;
-import common.networking.MessageToServerPacket;
+import common.networking.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.jmx.Server;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,14 +25,14 @@ public class ConnectionHandler implements Runnable {
     // Packetite järjekord.
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
 
-    // Viit kõikide aktiivsete ühenduste hulgale (vajame seda registreerimiseks).
-    private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers;
+    // Viit serveri olekule
+    private final ServerConnection serverConnection;
 
     // Socket, mille kaudu suhtlus kliendiga käib.
     private final Socket clientSocket;
 
-    public ConnectionHandler(CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers, Socket clientSocket) {
-        this.allConnectionHandlers = allConnectionHandlers;
+    public ConnectionHandler(ServerConnection serverConnection, Socket clientSocket) {
+        this.serverConnection = serverConnection;
         this.clientSocket = clientSocket;
     }
 
@@ -44,7 +42,7 @@ public class ConnectionHandler implements Runnable {
     @Override
     public void run() {
         // Registreerime oma ühenduse.
-        register();
+        serverConnection.register(this);
 
         // TODO: kogu selles asjas on vaja tagada, et see thread viisakalt
         //  ennast ära tapab siis, kui klient ühenduse katkestab.
@@ -72,7 +70,6 @@ public class ConnectionHandler implements Runnable {
             while (!Thread.currentThread().isInterrupted() && receiver.isAlive()) {
                 AbstractPacket packetToBeSent = queuedPackets.take();
                 String asString = objectMapper.writeValueAsString(packetToBeSent);
-                System.out.println("asString = " + asString);
                 out.write(asString);
                 out.flush();
             }
@@ -84,22 +81,13 @@ public class ConnectionHandler implements Runnable {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            unregister();
+            serverConnection.unregister(this);
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                log.error(e);
+            }
         }
-    }
-
-    /**
-     * Lisab selle ühenduse aktiivsete ühenduste hulka.
-     */
-    private void register() {
-        allConnectionHandlers.add(this);
-    }
-
-    /**
-     * Eemaldab selle ühenduse aktiivsete ühenduste hulgast.
-     */
-    private void unregister() {
-        allConnectionHandlers.remove(this);
     }
 
     /**
@@ -119,7 +107,7 @@ public class ConnectionHandler implements Runnable {
     private void broadcastMessage(MessageToServerPacket message) {
         Timestamp now = Timestamp.from(Instant.now());
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, now);
-        for (ConnectionHandler conn : allConnectionHandlers) {
+        for (ConnectionHandler conn : serverConnection.getAllConnectionHandlers()) {
             conn.queueClientMessage(packetToBeSent);
         }
     }
@@ -127,8 +115,10 @@ public class ConnectionHandler implements Runnable {
     public void handlePacket(AbstractPacket packet) {
         switch (packet) {
             case MessageToServerPacket msg -> broadcastMessage(msg);
-            case GetChannelsRequestPacket getChannelsRequest -> {
-                // TODO: send list of channels as individual AddChannelResponsePacket packets
+            case GetChannelsRequestPacket ignored -> {
+                for (String channel : serverConnection.getChannelList()) {
+                    queuedPackets.add(new AddChannelResponsePacket(channel));
+                }
             }
             default -> {
                 // TODO: Report unexpected packet
