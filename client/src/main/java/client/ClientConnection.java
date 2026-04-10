@@ -84,10 +84,12 @@ public class ClientConnection implements Runnable {
     }
 
     /**
-     * Lisab sõnumi järjekorda, et see serverile saata.
+     * pakib sõnumi ja muu informatsiooni payloadiks ja paneb järjekorda, et see serverile saata.
      * @param message sõnum.
      */
-    public void queueMessage(String message) {
-        queuedMessages.add(message);
+    public void queueMessage(String message, String channel) {
+        message = message.replace("\t;", "\\t;"); // escapime 
+        String payload = username + "\t;" + channel + "\t;" + message;
+        queuedMessages.add(payload);
     }
 }

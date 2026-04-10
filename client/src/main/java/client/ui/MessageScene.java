@@ -10,7 +10,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Stseen sõnumite vaateks. Saab vahetada kanaleid (TBD), kirjutada sõnumeid
@@ -18,20 +20,30 @@ import java.util.List;
  */
 public class MessageScene extends Scene {
     // Kõik sõnumid UI komponentidena.
-    private final MessageList messages;
+    private final Map<String, MessageList> channels;
+    private String[] channelNames = {"general", "uudised"};
+    private String selectedChannel = channelNames[0];
+    private ScrollPane scrollPane;
+
 
     public MessageScene(ClientConnection conn, double w, double h) {
         // Midagi peame parentiks panema, paneme HBox
         super(new HBox(), w, h);
 
+        channels = new HashMap<>();
+
         // Sõnumite vaade
-        messages = new MessageList();
-        ScrollPane scrollPane = new ScrollPane(messages);
+        scrollPane = new ScrollPane();
+        for (String channelName : channelNames){
+            MessageList messages = new MessageList();
+            messages.heightProperty().addListener((obs, oldValue, newValue) -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
+            channels.put(channelName, messages);
+        }
+        scrollPane.setContent(channels.get(selectedChannel));
         scrollPane.setFitToWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         // Scrollib alla kui uus sõnum tuleb
-        messages.heightProperty().addListener((obs, oldValue, newValue) -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
 
         // Sõnumite kirjutamiseks
         TextField messageField = createMessageField(conn, scrollPane);
@@ -42,7 +54,7 @@ public class MessageScene extends Scene {
 
         // Vasakpoolne osa, kus on kanalid
         // TODO: see on ainult UI testimiseks, tuleks küsida kanalite nimekirja serverilt.
-        VBox channelList = createChannelList(List.of("#general", "#ch1", "#ch2"));
+        VBox channelList = createChannelList(channelNames);
 
         // Lõpuks vahetame rooti välja
         // TODO: kindlasti seda saab kuidagi ilusamalt teha, see on hästi rõve.
@@ -61,7 +73,7 @@ public class MessageScene extends Scene {
      * @param scrollPane viit ScrollPane'ile, mis sisaldab sõnumeid.
      * @return loodud tekstikastike koos oma event handler'iga.
      */
-    private static TextField createMessageField(ClientConnection conn, ScrollPane scrollPane) {
+    private TextField createMessageField(ClientConnection conn, ScrollPane scrollPane) {
         TextField messageField = new TextField();
 
         // Kui vajutatakse enter, st tahetakse kirjutatut ära saata.
@@ -72,7 +84,7 @@ public class MessageScene extends Scene {
             }
 
             // Saadame ära.
-            conn.queueMessage(messageField.getText());
+            conn.queueMessage(messageField.getText(), selectedChannel);
 
             // Teeme tekstikastikese tühjaks.
             messageField.clear();
@@ -93,13 +105,17 @@ public class MessageScene extends Scene {
      */
     // TODO: see oli kasulik UI testimiseks, aga kui kanalite nimekiri hakkab
     //  tulema serverilt, peab selle ümber tegema.
-    private static VBox createChannelList(List<String> channels) {
+    private VBox createChannelList(String[] channels) {
         VBox channelList = new VBox();
         channelList.setFillWidth(true);
 
         for (String channelName : channels) {
             Button channelButton = new Button(channelName);
             channelButton.setMaxWidth(Double.MAX_VALUE);
+            channelButton.setOnAction(e -> {
+                selectedChannel = channelName;
+                scrollPane.setContent(this.channels.get(selectedChannel));
+            });;
             channelList.getChildren().add(channelButton);
         }
 
@@ -112,13 +128,21 @@ public class MessageScene extends Scene {
      *
      * @param content sõnumi sisu (praegu sõnena, peaks ümber tegema)
      */
-    private void addMessageToUI(String content) {
+    private void addMessageToUI(String payload) {
         // Platform.runLater() paneb selle lambda kuskile järjekorda ja see
         // täidetakse hiljem. Otse ei tohi me teisest lõimest JavaFX olekut
         // muuta, sest see teeks kõik katki.
         Platform.runLater(() -> {
-            String username = "kasutaja"; // TODO
-            messages.addMessage(username, content);
+            String[] pieces = payload.split("\t;");
+            if (pieces.length == 3){
+                String username = pieces[0];
+                String channelName = pieces[1];
+                String content = pieces[2].replace("\\t;", "\t;"); // unescapime
+                MessageList channel =  channels.get(channelName);
+                if (channel != null){
+                    channel.addMessage(username, content);
+                }
+            }
         });
     }
 }
