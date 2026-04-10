@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = GetChannelsRequestPacket.class, name = "get_channels_request"),
         @JsonSubTypes.Type(value = MessageToClientPacket.class, name = "message_to_client"),
         @JsonSubTypes.Type(value = MessageToServerPacket.class, name = "message_to_server"),
+        @JsonSubTypes.Type(value = LoginPacket.class, name = "login_to_server"),
 })
 public abstract class AbstractPacket {
 

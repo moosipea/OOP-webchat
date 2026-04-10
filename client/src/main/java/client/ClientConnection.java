@@ -24,17 +24,21 @@ public class ClientConnection implements Runnable {
     // Serveri detailid.
     private final InetAddress ip;
     private final int port;
+    private final String username;
+    private String password;
 
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
 
     private Consumer<MessageToClientPacket> onMessageReceived = null;
     private Consumer<AddChannelResponsePacket> onChannelAdded = null;
 
-    public ClientConnection(String ip, String port) throws UnknownHostException {
+    public ClientConnection(String ip, String port, String username, String password) throws UnknownHostException {
         if (port.isEmpty()){ip = "localhost";} // default to localhost
         if (port.isEmpty()){port = "6969";} // default to 6969
         this.ip = InetAddress.getByName(ip);
         this.port = Integer.parseInt(port);
+        this.username = username;
+        this.password = password;
     }
 
     /**
@@ -65,11 +69,17 @@ public class ClientConnection implements Runnable {
                         log.error(e);
                     }
                 });
+                String packet;
+                // autentimine enne sõnumite saatmist
+                AbstractPacket loginPacket = new LoginPacket(username, password);
+                packet = objectMapper.writeValueAsString(loginPacket);
+                out.write(packet);
+                out.flush();
 
                 // Sõnumite saatmine siin lõimes.
                 while (!Thread.currentThread().isInterrupted()) {
                     AbstractPacket packetToBeSent = queuedPackets.take();
-                    String packet = objectMapper.writeValueAsString(packetToBeSent);
+                    packet = objectMapper.writeValueAsString(packetToBeSent);
                     out.write(packet);
                     out.flush();
                 }

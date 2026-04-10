@@ -35,7 +35,7 @@ public class LoginScene extends Scene {
             }
 
             try {
-                ClientConnection conn = new ClientConnection(ipField.getText(), portField.getText());
+                ClientConnection conn = new ClientConnection(ipField.getText(), portField.getText(), userField.getText(), passField.getText());
                 switchScene.accept(new MessageScene(conn, w, h));
             } catch (UnknownHostException ex) {
                 // TODO: log error

@@ -19,15 +19,13 @@ import javafx.scene.layout.VBox;
  */
 public class MessageScene extends Scene {
     // Kõik sõnumid UI komponentidena.
-    private Map<String, MessageList> channels;
+    private Map<String, MessageList> channels = new HashMap<>();
     private ScrollPane scrollPane;
     private ChannelList channelList;
 
     public MessageScene(ClientConnection conn, double w, double h) {
         // Midagi peame parentiks panema, paneme HBox
         super(new HBox(), w, h);
-        
-        channels = new HashMap<>();
 
         // Ekraani vasakpoolne osa, kus on kanalid
         channelList = new ChannelList();
@@ -54,7 +52,7 @@ public class MessageScene extends Scene {
         conn.setOnMessageReceived((msg) -> Platform.runLater(() -> {
             MessageList channel = channels.get(msg.getTargetChannel());
             if (channel != null){
-                channel.addMessage("placeholder", msg.getContent());
+                channel.addMessage(msg.getUser(), msg.getContent());
             }
         }));
 

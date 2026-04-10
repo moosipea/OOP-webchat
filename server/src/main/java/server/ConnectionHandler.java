@@ -27,6 +27,7 @@ public class ConnectionHandler implements Runnable {
 
     // Viit serveri olekule
     private final ServerConnection serverConnection;
+    private String username;
 
     // Socket, mille kaudu suhtlus kliendiga käib.
     private final Socket clientSocket;
@@ -54,10 +55,18 @@ public class ConnectionHandler implements Runnable {
                     // TODO: only instantiate factory once (in common?)
                     Reader reader = new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8);
                     JsonParser jsonParser = objectMapper.getFactory().createParser(reader);
+                    // sisse logimine esimesena
+                    AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
+                    switch (packet){
+                        case LoginPacket p -> {
+                            username = p.getUsername();
+                        }
+                        default ->{}
+                    }
 
                     while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
                         if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
-                            AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
+                            packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
                             handlePacket(packet);
                         }
                     }
@@ -65,6 +74,8 @@ public class ConnectionHandler implements Runnable {
                     log.error(e);
                 }
             });
+
+            //while (username == null) // ootame, kuni on autentimine lõpuni jõudnud
 
             // Sõnumeid *saadetakse* selles lõimes.
             while (!Thread.currentThread().isInterrupted() && receiver.isAlive()) {
@@ -106,7 +117,7 @@ public class ConnectionHandler implements Runnable {
      */
     private void broadcastMessage(MessageToServerPacket message) {
         Timestamp now = Timestamp.from(Instant.now());
-        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, now);
+        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, username, now);
         for (ConnectionHandler conn : serverConnection.getAllConnectionHandlers()) {
             conn.queueClientMessage(packetToBeSent);
         }
