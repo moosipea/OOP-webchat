@@ -1,16 +1,12 @@
 package server;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import common.networking.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
 /**
  * Haldab ühe kliendi ühendust serveriga.
@@ -18,21 +14,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ConnectionHandler implements Runnable {
     private static final Logger log = LogManager.getLogger(ConnectionHandler.class);
 
-    // Packetite järjekord.
-    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+    private final Socket client;
 
-    // Viit serveri olekule
-    private final ServerMain serverConnection;
+    private final ServerMain server;
 
-    // Socket, mille kaudu suhtlus kliendiga käib.
-    private final Socket clientSocket;
+    private DuplexConnection duplex;
 
-    // Ühendatud kasutaja kasutajanimi
     private String username;
+    private boolean authenticated = false;
 
-    public ConnectionHandler(ServerMain serverConnection, Socket clientSocket) {
-        this.serverConnection = serverConnection;
-        this.clientSocket = clientSocket;
+    public ConnectionHandler(Socket client, ServerMain server) {
+        this.client = client;
+        this.server = server;
     }
 
     /**
@@ -40,92 +33,49 @@ public class ConnectionHandler implements Runnable {
      */
     @Override
     public void run() {
-        // Kui ühendus on loodud, siis server jääb ootama kliendilt
-        // LoginPacketit ning alles pärast edukat autentimist tehakse see klient
-        // teistele nähtavaks (registreeritakse).
-
-        // TODO: kogu selles asjas on vaja tagada, et see thread viisakalt
-        //  ennast ära tapab siis, kui klient ühenduse katkestab.
-        try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            Thread receiver = Thread.ofVirtual().start(() -> {
-                try {
-                    // TODO: only instantiate factory once (in common?)
-                    Reader reader = new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8);
-                    JsonParser jsonParser = objectMapper.getFactory().createParser(reader);
-                    while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
-                        if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
-                            AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
-                            handlePacket(packet);
-                        }
-                    }
-                } catch (IOException e) {
-                    log.error(e);
-                }
-            });
-
-            // Sõnumeid saadetakse selles lõimes.
-            while (!Thread.currentThread().isInterrupted() && receiver.isAlive()) {
-                AbstractPacket packetToBeSent = queuedPackets.take();
-                String asString = objectMapper.writeValueAsString(packetToBeSent);
-                out.write(asString);
-                out.flush();
-            }
-
-            receiver.interrupt();
-            receiver.join();
+        DuplexConnection duplexConnection = new DuplexConnection(client);
+        try {
+            duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
-            log.error(e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            log.error("IO exception while running packet handler: {}", e.getMessage());
         } finally {
-            serverConnection.unregister(this);
+            server.unregister(this);
             try {
-                clientSocket.close();
+                client.close();
             } catch (IOException e) {
                 log.error(e);
             }
         }
     }
 
-    /**
-     * Lisab sõnumi selle ühenduse sõnumite järjekorda.
-     *
-     * @param message sõnum
-     */
-    public void queueClientMessage(MessageToClientPacket message) {
-        queuedPackets.add(message);
-    }
+    private void handlePacket(AbstractPacket packet) {
 
-    private boolean isAuthenticated() {
-        return username != null;
-    }
-
-    public void handlePacket(AbstractPacket packet) {
         // Kui pole veel autentinud, siis me teisi asju ei parsi
-        if (!isAuthenticated() && !(packet instanceof LoginPacket)) {
+        if (!authenticated && !(packet instanceof LoginPacket)) {
             return;
         }
 
         switch (packet) {
-            case MessageToServerPacket msg -> serverConnection.broadcastMessage(msg, username);
+            case MessageToServerPacket msg ->
+                    server.broadcastMessage(msg, username);
             case GetChannelsRequestPacket ignored -> {
-                for (String channel : serverConnection.getChannelList()) {
-                    queuedPackets.add(new AddChannelResponsePacket(channel));
+                for (String channel : server.getChannelList()) {
+                    duplex.addPacket(new AddChannelResponsePacket(channel));
                 }
             }
             case LoginPacket login -> {
-                // TODO: peame ka reaalselt salasõna kontrollima. kuigi ilmselt
-                //  peaks saatma salasõna räsi, mitte lihtsalt plaintextina.
+                // TODO: magic check here
+                server.register(this);
+                authenticated = true;
                 username = login.getUsername();
-
-                // Registreerime oma ühenduse.
-                serverConnection.register(this);
             }
             default -> {
                 log.warn("Unexpected packet: {}", packet);
             }
         }
+    }
+
+    public DuplexConnection getDuplex() {
+        return duplex;
     }
 }

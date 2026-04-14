@@ -44,7 +44,7 @@ public class ServerMain {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket client = serverSocket.accept(); // Blokib, kuni uus klient ühendab
-                    executor.submit(new ConnectionHandler(this, client)); // Loob sellele vastava handler'i.
+                    executor.submit(new ConnectionHandler(client, this)); // Loob sellele vastava handler'i.
                 } catch (IOException ignored) {
                     // TODO: log exception, but don't crash!
                 }
@@ -63,24 +63,19 @@ public class ServerMain {
         allConnectionHandlers.remove(handler);
     }
 
-    public CopyOnWriteArraySet<ConnectionHandler> getAllConnectionHandlers() {
-        return allConnectionHandlers;
-    }
-
     public List<String> getChannelList() {
         return channelList;
     }
 
     /**
      * Edastab sõnumi kõigile ühendatud ja autenditud kasutajatele.
-     *
-     * @param message sõnum
      */
     public void broadcastMessage(MessageToServerPacket message, String author) {
+        // TODO: SIIN KOHA PEAL TOPPIDA ANDMEBAASI
         Timestamp now = Timestamp.from(Instant.now());
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
         for (ConnectionHandler conn : allConnectionHandlers) {
-            conn.queueClientMessage(packetToBeSent);
+            conn.getDuplex().addPacket(packetToBeSent);
         }
     }
 }
