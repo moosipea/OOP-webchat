@@ -10,8 +10,6 @@ Online chat rakendus (server + klient).
 
 ## Liikmed
 Oskar Austa (github: oskarasd123) <br>
-Mihkel Matto (github: mihkelmatto) <br>
-Raimond Olle (github: RaimondOlle) <br>
 Mattias Volt (github: moosipea) <br>
 
 ## Põhifunktsionaalsused (peab kindlasti olema):
