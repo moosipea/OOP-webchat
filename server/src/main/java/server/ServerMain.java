@@ -1,17 +1,31 @@
 package server;
 
-import common.networking.MessageToClientPacket;
-import common.networking.MessageToServerPacket;
-
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
+import common.networking.MessageToClientPacket;
+import common.networking.MessageToServerPacket;
 
 /**
  * Serveri põhiklass. TODO: ilmselt võiks maini siia tõsta hoopis.
@@ -37,10 +51,49 @@ public class ServerMain {
      * Käivitab serveri.
      */
     public void start() {
+
+        SSLServerSocketFactory ssf;
         // Kasutame virtuaalseid lõimesid, et ei peaks mingi async asjadega eraldi jamama.
         // TODO: teha port konfigureeritavaks.
+        
+        KeyStore keyStore;
+        try {
+            keyStore = KeyStore.getInstance("PKCS12");
+        } catch (KeyStoreException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "keystore error", ex);
+            return;
+        }
+        try (FileInputStream fis = new FileInputStream("./keystore.p12")) {
+            String password = "123456";
+            keyStore.load(fis, password.toCharArray());
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, password.toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+            ssf = sslContext.getServerSocketFactory();
+
+        } catch (IOException ex){
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "no key file", ex);
+            return;
+        } catch (NoSuchAlgorithmException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "bad algorithm?", ex);
+            return;
+        } catch (CertificateException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "problem with certificate?", ex);
+            return;
+        } catch (UnrecoverableKeyException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "key exception?", ex);
+            return;
+        } catch (KeyStoreException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "keystore exception?", ex);
+            return;
+        } catch (KeyManagementException ex) {
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "key management exception?", ex);
+            return;
+        }
+
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-             ServerSocket serverSocket = new ServerSocket(6969)) {
+             SSLServerSocket serverSocket = (SSLServerSocket) ssf.createServerSocket(6969)) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket client = serverSocket.accept(); // Blokib, kuni uus klient ühendab

@@ -1,15 +1,33 @@
 package client;
 
-import common.networking.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
+import common.networking.AbstractPacket;
+import common.networking.AddChannelResponsePacket;
+import common.networking.DuplexConnection;
+import common.networking.GetChannelsRequestPacket;
+import common.networking.LoginPacket;
+import common.networking.MessageToClientPacket;
+import common.networking.MessageToServerPacket;
 
 /**
  * Haldab kliendi ühendust serveriga.
@@ -45,7 +63,39 @@ public class ClientConnection implements Runnable {
      */
     @Override
     public void run() {
-        try (Socket sock = new Socket(ip, port)) {
+        SSLSocketFactory sf;
+        // TODO: sertifikaatide paremini saamine
+        KeyStore keyStore;
+        try (FileInputStream fis = new FileInputStream("../client-truststore.p12")) {
+            keyStore = KeyStore.getInstance("PKCS12");
+            String password = "123456"; // FIXME: paroolindus
+            keyStore.load(fis, password.toCharArray());
+            //KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+            //kmf.init(keyStore, password.toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+            sf = sslContext.getSocketFactory();
+
+        } catch (IOException ex){
+            System.getLogger(ClientConnection.class.getName()).log(System.Logger.Level.ERROR, "no key file", ex);
+            return;
+        } catch (NoSuchAlgorithmException ex) {
+            System.getLogger(ClientConnection.class.getName()).log(System.Logger.Level.ERROR, "bad algorithm?", ex);
+            return;
+        } catch (CertificateException ex) {
+            System.getLogger(ClientConnection.class.getName()).log(System.Logger.Level.ERROR, "problem with certificate?", ex);
+            return;
+        } catch (KeyStoreException ex) {
+            System.getLogger(ClientConnection.class.getName()).log(System.Logger.Level.ERROR, "keystore exception?", ex);
+            return;
+        } catch (KeyManagementException ex) {
+            System.getLogger(ClientConnection.class.getName()).log(System.Logger.Level.ERROR, "key management exception?", ex);
+            return;
+        }
+        try (SSLSocket sock = (SSLSocket) sf.createSocket(this.ip, this.port)) {
+            sock.startHandshake();
             DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
             duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
