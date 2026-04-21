@@ -93,9 +93,7 @@ public class ClientConnection implements Runnable {
                     onChannelAdded.accept(addChannelResponse);
                 }
             }
-            default -> {
-                log.warn("Unexpected packet: {}", packet);
-            }
+            default -> log.warn("Unexpected packet: {}", packet);
         }
     }
 }

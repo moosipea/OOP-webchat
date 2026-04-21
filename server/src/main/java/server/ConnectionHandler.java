@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.function.Consumer;
 
 /**
  * Haldab ühe kliendi ühendust serveriga.
@@ -69,9 +68,7 @@ public class ConnectionHandler implements Runnable {
                 authenticated = true;
                 username = login.getUsername();
             }
-            default -> {
-                log.warn("Unexpected packet: {}", packet);
-            }
+            default -> log.warn("Unexpected packet: {}", packet);
         }
     }
 
