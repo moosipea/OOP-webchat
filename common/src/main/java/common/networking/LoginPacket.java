@@ -1,7 +1,8 @@
 package common.networking;
 
 public class LoginPacket extends AbstractPacket {
-    private String username, password;
+    private String username;
+    private String password;
 
     public LoginPacket(String username, String paassword) {
         this.username = username;
@@ -9,7 +10,6 @@ public class LoginPacket extends AbstractPacket {
     }
 
     public LoginPacket() {
-
     }
 
     public String getUsername() {

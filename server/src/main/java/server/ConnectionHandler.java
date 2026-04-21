@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Haldab ühe kliendi ühendust serveriga.
@@ -17,7 +18,7 @@ public class ConnectionHandler implements Runnable {
 
     private final ServerMain server;
 
-    private DuplexConnection duplex;
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
 
     private String username;
     private boolean authenticated = false;
@@ -32,7 +33,7 @@ public class ConnectionHandler implements Runnable {
      */
     @Override
     public void run() {
-        DuplexConnection duplexConnection = new DuplexConnection(client);
+        DuplexConnection duplexConnection = new DuplexConnection(client, queuedPackets);
         try {
             duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
@@ -59,20 +60,22 @@ public class ConnectionHandler implements Runnable {
                     server.broadcastMessage(msg, username);
             case GetChannelsRequestPacket ignored -> {
                 for (String channel : server.getChannelList()) {
-                    duplex.addPacket(new AddChannelResponsePacket(channel));
+                    addPacket(new AddChannelResponsePacket(channel));
                 }
             }
             case LoginPacket login -> {
-                // TODO: magic check here
-                server.register(this);
-                authenticated = true;
-                username = login.getUsername();
+                if (!authenticated) {
+                    // TODO: magic check here
+                    server.register(this);
+                    authenticated = true;
+                    username = login.getUsername();
+                }
             }
             default -> log.warn("Unexpected packet: {}", packet);
         }
     }
 
-    public DuplexConnection getDuplex() {
-        return duplex;
+    public void addPacket(AbstractPacket packet) {
+        queuedPackets.add(packet);
     }
 }

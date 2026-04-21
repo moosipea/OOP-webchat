@@ -19,9 +19,9 @@ import javafx.scene.layout.VBox;
  */
 public class MessageScene extends Scene {
     // Kõik sõnumid UI komponentidena.
-    private Map<String, MessageList> channels = new HashMap<>();
+    private final Map<String, MessageList> channels = new HashMap<>();
+    private final ChannelList channelList;
     private ScrollPane scrollPane;
-    private ChannelList channelList;
 
     public MessageScene(ClientConnection conn, double w, double h) {
         // Midagi peame parentiks panema, paneme HBox
@@ -32,13 +32,11 @@ public class MessageScene extends Scene {
         channelList.setOnChannelChange(newChannel -> {
             scrollPane.setContent(channels.get(newChannel));
         });
-        
+
         // Sõnumite vaade
-        addChannel("#general"); // vaikimisi channel
         scrollPane = new ScrollPane(channels.get("#general"));
         scrollPane.setFitToWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
-
 
         // Ekraani parempoolne osa (sõnumid ja kast sõnumi kirjutamiseks)
         VBox messagesRoot = createMessagesSide(conn, channelList, scrollPane);
@@ -51,7 +49,7 @@ public class MessageScene extends Scene {
         // Kui UI on loodud, kleebime sinna otsa ühenduse serveriga
         conn.setOnMessageReceived((msg) -> Platform.runLater(() -> {
             MessageList channel = channels.get(msg.getTargetChannel());
-            if (channel != null){
+            if (channel != null) {
                 channel.addMessage(msg.getUser(), msg.getContent());
             }
         }));
@@ -63,26 +61,14 @@ public class MessageScene extends Scene {
         Thread.ofVirtual().start(conn); // See võib failida, peaks tagasi login ekraanile viskama
         conn.requestChannelList();
     }
-    
-    /**
-     * Teeb kõik, mida on vaja, et kliendil uus kanal tekiks
-     * @param channelName
-     */
-    private void addChannel(String channelName){
-        if (channels.containsKey(channelName)) return;
-        MessageList channel = new MessageList();
-        // Teeb, et scrollib alla kui uus sõnum tuleb
-        channel.heightProperty().addListener((obs, oldValue, newValue) -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
-        channels.put(channelName, channel);
-        channelList.addChannel(channelName);
-    }
 
     /**
      * Loob ekraani parempoolse osa, mis sisaldab sõnumeid ja kirjutus välja nende
      * kirjutamiseks.
-     * @param conn ühendus serveriga
+     *
+     * @param conn        ühendus serveriga
      * @param channelList kanalite ui komponent
-     * @param scrollPane ScrollPane, mille sees sõnumid istuvad
+     * @param scrollPane  ScrollPane, mille sees sõnumid istuvad
      * @return ekraani parempoolne osa
      */
     private static VBox createMessagesSide(ClientConnection conn, ChannelList channelList, ScrollPane scrollPane) {
@@ -99,5 +85,22 @@ public class MessageScene extends Scene {
         VBox messagesRoot = new VBox(scrollPane, messageField);
         HBox.setHgrow(messagesRoot, Priority.ALWAYS);
         return messagesRoot;
+    }
+
+    /**
+     * Teeb kõik, mida on vaja, et kliendil uus kanal tekiks
+     *
+     * @param channelName
+     */
+    private void addChannel(String channelName) {
+        if (channels.containsKey(channelName)) {
+            return;
+        }
+
+        MessageList channel = new MessageList();
+        // Teeb, et scrollib alla kui uus sõnum tuleb
+        channel.heightProperty().addListener((obs, oldValue, newValue) -> Platform.runLater(() -> scrollPane.setVvalue(1.0)));
+        channels.put(channelName, channel);
+        channelList.addChannel(channelName);
     }
 }

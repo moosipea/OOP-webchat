@@ -21,10 +21,11 @@ public class DuplexConnection {
     private static final Logger log = LogManager.getLogger(DuplexConnection.class);
 
     private final Socket socket;
-    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets;
 
-    public DuplexConnection(Socket socket) {
+    public DuplexConnection(Socket socket, LinkedBlockingQueue<AbstractPacket> queuedPackets) {
         this.socket = socket;
+        this.queuedPackets = queuedPackets;
     }
 
     public void runConnection(Consumer<AbstractPacket> handler) throws IOException {
@@ -39,6 +40,7 @@ public class DuplexConnection {
                     while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
                         if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
                             AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
+                            System.out.println("packet = " + packet);
                             handler.accept(packet);
                         }
                     }
@@ -55,6 +57,7 @@ public class DuplexConnection {
                         try {
                             AbstractPacket packetToBeSent = queuedPackets.take();
                             String packet = objectMapper.writeValueAsString(packetToBeSent);
+                            System.out.println("sending: " + packet);
                             out.write(packet);
                             out.flush();
                         } catch (InterruptedException e) {
@@ -76,9 +79,5 @@ public class DuplexConnection {
         } catch (InterruptedException e) {
             // TODO: midagi siin teha
         }
-    }
-
-    public void addPacket(AbstractPacket packet) {
-        queuedPackets.add(packet);
     }
 }

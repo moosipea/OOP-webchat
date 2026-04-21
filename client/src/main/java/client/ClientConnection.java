@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 /**
@@ -19,14 +20,13 @@ public class ClientConnection implements Runnable {
     // Serveri detailid.
     private final InetAddress ip;
     private final int port;
-    private final String username;
-    private final String password;
 
     private Consumer<MessageToClientPacket> onMessageReceived = null;
     private Consumer<AddChannelResponsePacket> onChannelAdded = null;
-    private DuplexConnection duplexConnection = null;
 
-    public ClientConnection(String ip, String port, String username, String password) throws UnknownHostException {
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+
+    public ClientConnection(String ip, String port) throws UnknownHostException {
         // default to localhost
         if (port.isEmpty()) {
             ip = "localhost";
@@ -38,8 +38,6 @@ public class ClientConnection implements Runnable {
 
         this.ip = InetAddress.getByName(ip);
         this.port = Integer.parseInt(port);
-        this.username = username;
-        this.password = password;
     }
 
     /**
@@ -48,7 +46,7 @@ public class ClientConnection implements Runnable {
     @Override
     public void run() {
         try (Socket sock = new Socket(ip, port)) {
-            duplexConnection = new DuplexConnection(sock);
+            DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
             duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
             log.error("IO exception, ending connection: {}", e.getMessage());
@@ -74,11 +72,15 @@ public class ClientConnection implements Runnable {
      * @param message sõnum.
      */
     public void sendMessage(String targetChannel, String message) {
-        duplexConnection.addPacket(new MessageToServerPacket(targetChannel, message));
+        addPacket(new MessageToServerPacket(targetChannel, message));
     }
 
     public void requestChannelList() {
-        duplexConnection.addPacket(new GetChannelsRequestPacket());
+        addPacket(new GetChannelsRequestPacket());
+    }
+
+    public void loginWithCredentials(String username, String password) {
+        addPacket(new LoginPacket(username, password));
     }
 
     private void handlePacket(AbstractPacket packet) {
@@ -95,5 +97,9 @@ public class ClientConnection implements Runnable {
             }
             default -> log.warn("Unexpected packet: {}", packet);
         }
+    }
+
+    private void addPacket(AbstractPacket packet) {
+        queuedPackets.add(packet);
     }
 }

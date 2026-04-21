@@ -75,7 +75,7 @@ public class ServerMain {
         Timestamp now = Timestamp.from(Instant.now());
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
         for (ConnectionHandler conn : allConnectionHandlers) {
-            conn.getDuplex().addPacket(packetToBeSent);
+            conn.addPacket(packetToBeSent);
         }
     }
 }

@@ -16,15 +16,17 @@ public class ChannelList extends VBox {
     public void addChannel(String name) {
         Button btn = new Button(name);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setOnMouseReleased((e) -> {
-            activeChannel = name;
-            changeChannel.accept(name);
-        });
+        btn.setOnMouseReleased((e) -> switchChannel(name));
         getChildren().add(btn);
 
         if (activeChannel == null) {
-            activeChannel = name;
+            switchChannel(name);
         }
+    }
+
+    private void switchChannel(String channel) {
+        activeChannel = channel;
+        changeChannel.accept(channel);
     }
 
     public String getActiveChannel() {
