@@ -1,3 +1,4 @@
+rm keystore.p12 client-truststore.p12
 keytool -genkeypair \
   -alias my-server-key \
   -keyalg EC \
