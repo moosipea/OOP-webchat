@@ -1,9 +1,10 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import common.networking.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -14,19 +15,27 @@ import java.util.function.Consumer;
  * Haldab kliendi ühendust serveriga.
  */
 public class ClientConnection implements Runnable {
+    private static final Logger log = LogManager.getLogger(ClientConnection.class);
+
     // Serveri detailid.
-    private final String username; // TODO: Midagi sellega peale hakata? Ei tea.
     private final InetAddress ip;
     private final int port;
 
-    // Järjekorras olevad sõnumid, mis on tarvis saata.
-    private final LinkedBlockingQueue<String> queuedMessages = new LinkedBlockingQueue<>();
+    private Consumer<MessageToClientPacket> onMessageReceived = null;
+    private Consumer<AddChannelResponsePacket> onChannelAdded = null;
 
-    // Handler selleks, kui sõnum meile saabub.
-    private Consumer<String> onMessageReceived = null;
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
 
-    public ClientConnection(String username, String ip, String port) throws UnknownHostException {
-        this.username = username;
+    public ClientConnection(String ip, String port) throws UnknownHostException {
+        // default to localhost
+        if (port.isEmpty()) {
+            ip = "localhost";
+        }
+        // default to port 6969
+        if (port.isEmpty()) {
+            port = "6969";
+        }
+
         this.ip = InetAddress.getByName(ip);
         this.port = Integer.parseInt(port);
     }
@@ -34,60 +43,63 @@ public class ClientConnection implements Runnable {
     /**
      * Käivitab ühenduse serveriga.
      */
-    // TODO: sisemise handleri võiks välja abstraheerida, vt ka sarnast
-    //  handler'it serveri ConnectionHandler klassis.
     @Override
     public void run() {
         try (Socket sock = new Socket(ip, port)) {
-            // TODO: siin on hästi sarnane kood serveri ConnectionHandler
-            //  klassile, äkki saaks mingi ilusama abstraktsiooni teha?
-            try (PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {
-
-                // Sõnumite kuulamine eraldi lõimes.
-                Thread receiver = Thread.ofVirtual().start(() -> {
-                    while (!Thread.currentThread().isInterrupted()) {
-                        try {
-                            String line = in.readLine();
-                            // TODO: kontrollida, et onMessageReceived ei ole null
-                            if (line != null) {
-                                onMessageReceived.accept(line);
-                            }
-                        } catch (IOException ignored) {
-                            // TODO: log exception, but don't crash!
-                        }
-                    }
-                });
-
-                // Sõnumite saatmine siin lõimes.
-                while (!Thread.currentThread().isInterrupted()) {
-                    String messageToBeSent = queuedMessages.take(); // Blokib, kuni on mingi sõnum järjekorras.
-                    out.println(messageToBeSent);
-                    out.flush();
-                }
-
-                receiver.interrupt();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
+            duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("IO exception, ending connection: {}", e.getMessage());
         }
     }
 
     /**
      * Määrab tegevuse, mis on tarvis teha saabunud sõnumi korral.
+     *
      * @param onMessageReceived event handler
      */
-    public void setOnMessageReceived(Consumer<String> onMessageReceived) {
+    public void setOnMessageReceived(Consumer<MessageToClientPacket> onMessageReceived) {
         this.onMessageReceived = onMessageReceived;
+    }
+
+    public void setOnChannelAdded(Consumer<AddChannelResponsePacket> onChannelAdded) {
+        this.onChannelAdded = onChannelAdded;
     }
 
     /**
      * Lisab sõnumi järjekorda, et see serverile saata.
+     *
      * @param message sõnum.
      */
-    public void queueMessage(String message) {
-        queuedMessages.add(message);
+    public void sendMessage(String targetChannel, String message) {
+        addPacket(new MessageToServerPacket(targetChannel, message));
+    }
+
+    public void requestChannelList() {
+        addPacket(new GetChannelsRequestPacket());
+    }
+
+    public void loginWithCredentials(String username, String password) {
+        addPacket(new LoginPacket(username, password));
+    }
+
+    private void handlePacket(AbstractPacket packet) {
+        switch (packet) {
+            case MessageToClientPacket msg -> {
+                if (onMessageReceived != null) {
+                    onMessageReceived.accept(msg);
+                }
+            }
+            case AddChannelResponsePacket addChannelResponse -> {
+                if (onChannelAdded != null) {
+                    onChannelAdded.accept(addChannelResponse);
+                }
+            }
+            default -> log.warn("Unexpected packet: {}", packet);
+        }
+    }
+
+    private void addPacket(AbstractPacket packet) {
+        queuedPackets.add(packet);
     }
 }
