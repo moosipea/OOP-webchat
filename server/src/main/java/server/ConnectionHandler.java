@@ -1,6 +1,7 @@
 package server;
 
 import common.networking.*;
+import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,7 +52,7 @@ public class ConnectionHandler implements Runnable {
     private void handlePacket(AbstractPacket packet) {
 
         // Kui pole veel autentinud, siis me teisi asju ei parsi
-        if (!authenticated && !(packet instanceof LoginPacket)) {
+        if (!authenticated && !(packet instanceof LoginRequestPacket)) {
             return;
         }
 
@@ -63,12 +64,19 @@ public class ConnectionHandler implements Runnable {
                     addPacket(new AddChannelResponsePacket(channel));
                 }
             }
-            case LoginPacket login -> {
+            case RegisterRequestPacket register -> {
+                boolean success = server.attemptToRegisterUser(register);
+                addPacket(new RegisterResponsePacket(success));
+            }
+            case LoginRequestPacket login -> {
+                boolean success = server.attemptToLogInUser(login);
                 if (!authenticated) {
-                    // TODO: magic check here
-                    server.register(this);
-                    authenticated = true;
-                    username = login.getUsername();
+                    if (success) {
+                        server.register(this);
+                        authenticated = true;
+                        username = login.getUsername();
+                    }
+                    addPacket(new LoginResponsePacket(success));
                 }
             }
             default -> log.warn("Unexpected packet: {}", packet);

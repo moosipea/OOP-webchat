@@ -1,11 +1,12 @@
 package server;
 
-import common.networking.MessageToClientPacket;
-import common.networking.MessageToServerPacket;
+import common.networking.packets.LoginRequestPacket;
+import common.networking.packets.MessageToClientPacket;
+import common.networking.packets.MessageToServerPacket;
+import common.networking.packets.RegisterRequestPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -106,6 +107,20 @@ public class ServerMain implements AutoCloseable {
             chatDataStore.close();
         } catch (SQLException e) {
             log.error("Closing database failed: {}", e.getMessage());
+        }
+    }
+
+    public boolean attemptToRegisterUser(RegisterRequestPacket registerPacket) {
+        // TODO: kasutada HikariCP-d
+        synchronized (this) {
+            return chatDataStore.attemptToRegisterUser(registerPacket);
+        }
+    }
+
+    public boolean attemptToLogInUser(LoginRequestPacket loginRequestPacket) {
+        // TODO: kasutada HikariCP-d
+        synchronized (this) {
+            return chatDataStore.attemptToLogInUser(loginRequestPacket);
         }
     }
 }

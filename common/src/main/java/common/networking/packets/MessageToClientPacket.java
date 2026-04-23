@@ -1,4 +1,4 @@
-package common.networking;
+package common.networking.packets;
 
 import java.sql.Timestamp;
 

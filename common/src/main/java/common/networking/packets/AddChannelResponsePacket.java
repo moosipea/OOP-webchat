@@ -1,4 +1,4 @@
-package common.networking;
+package common.networking.packets;
 
 public class AddChannelResponsePacket extends AbstractPacket {
     private String channelName;

@@ -1,4 +1,4 @@
-package common.networking;
+package common.networking.packets;
 
 public class MessageToServerPacket extends AbstractPacket {
     private String targetChannel = null;

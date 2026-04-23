@@ -1,6 +1,7 @@
 package client;
 
 import common.networking.*;
+import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,7 +81,7 @@ public class ClientConnection implements Runnable {
     }
 
     public void loginWithCredentials(String username, String password) {
-        addPacket(new LoginPacket(username, password));
+        addPacket(new LoginRequestPacket(username, password));
     }
 
     private void handlePacket(AbstractPacket packet) {

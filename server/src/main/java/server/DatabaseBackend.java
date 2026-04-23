@@ -1,9 +1,12 @@
 package server;
 
-import common.networking.MessageToClientPacket;
+import common.networking.packets.LoginRequestPacket;
+import common.networking.packets.MessageToClientPacket;
+import common.networking.packets.RegisterRequestPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,7 +59,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                         """
                             INSERT INTO channels (channel_name)
                             VALUES (
-                                ? 
+                                ?
                             )
                             ON CONFLICT (channel_name) DO NOTHING;
                         """
@@ -77,7 +80,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                 PreparedStatement st = db.prepareStatement(
                         """
                             SELECT messages.content,
-                                   users.username, 
+                                   users.username,
                                    channels.channel_name, 
                                    message.message_timestamp
                             FROM messages, users, channels
@@ -85,6 +88,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                 AND channels.channel_id = messages.channel
                                 AND channels.channel_name = ?
                                 AND messages.message_timestamp >= ?
+                            ORDER BY messages.message_timestamp
                         """
                 )
         ) {
@@ -108,8 +112,61 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         return messages;
     }
 
+    @Override
+    public boolean attemptToRegisterUser(RegisterRequestPacket registerPacket) {
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                          INSERT INTO users (username, password_hash)
+                          VALUES (
+                            ?,
+                            ?
+                          )
+                        """
+                )
+        ) {
+            st.setString(1, registerPacket.getUsername());
+            st.setBlob(2, new ByteArrayInputStream(registerPacket.getPasswordHash()));
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Failed to register user: {}", e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean attemptToLogInUser(LoginRequestPacket loginPacket) {
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                        SELECT username, password_hash
+                        FROM users
+                        WHERE username = ? AND password_hash = ?
+                        """
+                )
+        ) {
+            st.setString(1, loginPacket.getUsername());
+            st.setBlob(2, new ByteArrayInputStream(loginPacket.getPasswordHash()));
+            ResultSet rs = st.executeQuery();
+
+            if (rs.first()) {
+                return true;
+            }
+
+        } catch (SQLException e) {
+            log.error("Failed to loign user: {}", e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     private void createDatabase() throws SQLException {
-        // TODO: kas see kõik peaks olema transaction?
+        // TODO: kas see kõik peaks olema transaction? korrektsuse mõttes
+        //  vist küll, aga praktikas vahet pole
+        // TODO: siia panna lätaki ressurssid
 
         db.prepareStatement("""
                                 CREATE TABLE IF NOT EXISTS messages (
@@ -118,22 +175,27 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                 	message_timestamp INTEGER NOT NULL,
                                 	author INTEGER NOT NULL,
                                 	channel INTEGER NOT NULL,
-                                    FOREIGN KEY(author) REFERENCES users(user_id),
-                                    FOREIGN KEY(channel) REFERENCES channels(channel_id)
+                                    FOREIGN KEY (author) REFERENCES users(user_id),
+                                    FOREIGN KEY (channel) REFERENCES channels(channel_id)
                                 )
                             """).execute();
 
+        // NB: kontrollime, et password hash on 32 baiti (kuna kasutame SHA-256 algoritmi)
         db.prepareStatement("""
                                 CREATE TABLE IF NOT EXISTS users (
                                     user_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-                                    username TEXT NOT NULL UNIQUE
+                                    username TEXT NOT NULL UNIQUE,
+                                    password_hash BLOB NOT NULL,
+                                    CONSTRAINT check_username_length CHECK (length(username) > 0),
+                                    CONSTRAINT check_hash_length CHECK (length(password_hash) = 32)
                                 );
                             """).execute();
 
         db.prepareStatement("""
                                 CREATE TABLE IF NOT EXISTS channels (
                             	    channel_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-                            	    channel_name TEXT NOT NULL UNIQUE
+                            	    channel_name TEXT NOT NULL UNIQUE,
+                                    CONSTRAINT check_channel_name_length CHECK (length(channel_name) > 0),
                                 )
                             """).execute();
     }

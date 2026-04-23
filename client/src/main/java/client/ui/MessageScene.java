@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import client.ClientConnection;
-import common.networking.MessageToClientPacket;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
