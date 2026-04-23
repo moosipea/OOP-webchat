@@ -1,5 +1,7 @@
 package client.ui;
 
+import java.util.Date;
+
 import javafx.scene.layout.VBox;
 
 /**
@@ -14,7 +16,7 @@ public class MessageList extends VBox {
      * @param author  autor
      * @param content sõnum
      */
-    public void addMessage(String author, String content) {
-        getChildren().add(new MessageComponent(author, content));
+    public void addMessage(String author, String content, Date time) {
+        getChildren().add(new MessageComponent(author, content, time));
     }
 }

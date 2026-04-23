@@ -10,6 +10,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
@@ -129,6 +130,10 @@ public class ClientConnection implements Runnable {
         addPacket(new GetChannelsRequestPacket());
     }
 
+    public void requestHistory(String channel, Date before, Date notBefore){
+        addPacket(new GetChannelsRequestPacket(channel, before, notBefore));
+    }
+
     public void loginWithCredentials(String username, String password) {
         addPacket(new LoginPacket(username, password));
     }
@@ -143,6 +148,7 @@ public class ClientConnection implements Runnable {
             case AddChannelResponsePacket addChannelResponse -> {
                 if (onChannelAdded != null) {
                     onChannelAdded.accept(addChannelResponse);
+                    requestHistory(addChannelResponse.getChannelName(), null, null);
                 }
             }
             default -> log.warn("Unexpected packet: {}", packet);

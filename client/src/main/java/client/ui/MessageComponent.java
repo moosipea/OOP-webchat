@@ -1,5 +1,7 @@
 package client.ui;
 
+import java.util.Date;
+
 import client.formatting.FormattingParser;
 import client.formatting.TextSection;
 import javafx.scene.control.Label;
@@ -10,11 +12,13 @@ import javafx.scene.text.TextFlow;
  * Esindab üht sõnumit UI komponendina (võimaldab tekstivormingut).
  */
 public class MessageComponent extends TextFlow {
-    public MessageComponent(String author, String rawContent) {
+    private final Date time;
+    public MessageComponent(String author, String rawContent, Date time) {
         // Näitame sõnumi autorit.
         Label authorLabel = new Label(author);
         authorLabel.getStyleClass().add("pirukas-bold");
         authorLabel.setTextFill(pickUserColor(author));
+        this.time = time;
 
         // Autori ja sisu vahele koolon.
         Label separator = new Label(": ");
@@ -42,5 +46,9 @@ public class MessageComponent extends TextFlow {
         // NB: absoluutväärtus on vajalik, kuna hashCode on int tüüpi ja võib
         // seega olla negatiivne (Java on loll keel).
         return Color.valueOf(colors[Math.abs(username.hashCode()) % colors.length]);
+    }
+
+    public Date getTime(){
+        return time;
     }
 }

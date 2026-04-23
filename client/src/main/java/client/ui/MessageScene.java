@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import client.ClientConnection;
-import common.networking.MessageToClientPacket;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
@@ -50,7 +49,7 @@ public class MessageScene extends Scene {
         conn.setOnMessageReceived((msg) -> Platform.runLater(() -> {
             MessageList channel = channels.get(msg.getTargetChannel());
             if (channel != null) {
-                channel.addMessage(msg.getUser(), msg.getContent());
+                channel.addMessage(msg.getUser(), msg.getContent(), msg.getTimestamp());
             }
         }));
 

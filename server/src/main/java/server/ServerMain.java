@@ -26,6 +26,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 
 import common.networking.MessageToClientPacket;
 import common.networking.MessageToServerPacket;
+import common.objects.Message;
 
 /**
  * Serveri põhiklass. TODO: ilmselt võiks maini siia tõsta hoopis.
@@ -36,16 +37,21 @@ public class ServerMain {
 
     private final List<String> channelList = Collections.synchronizedList(new ArrayList<>());
 
+    private final List<Message> messages;
+
     public ServerMain() {
         // Suvalised näidiskanalid
         channelList.add("#general");
         channelList.add("#server-loodud-kanal-1");
         channelList.add("#server-loodud-kanal-2");
+        messages = new ArrayList<>();
     }
 
     public static void main(String[] args) {
         new ServerMain().start();
     }
+
+    
 
     /**
      * Käivitab serveri.
@@ -73,7 +79,7 @@ public class ServerMain {
             ssf = sslContext.getServerSocketFactory();
 
         } catch (IOException ex){
-            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "no key file", ex);
+            System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "no key file", ex); // TODO: paremad exceptionid
             return;
         } catch (NoSuchAlgorithmException ex) {
             System.getLogger(ServerMain.class.getName()).log(System.Logger.Level.ERROR, "bad algorithm?", ex);
@@ -126,9 +132,19 @@ public class ServerMain {
     public void broadcastMessage(MessageToServerPacket message, String author) {
         // TODO: SIIN KOHA PEAL TOPPIDA ANDMEBAASI
         Timestamp now = Timestamp.from(Instant.now());
-        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
+        long id = messages.size();
+        messages.add(new Message(message.getTargetChannel(), message.getContent(), now, author, id));
+        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now, id);
         for (ConnectionHandler conn : allConnectionHandlers) {
             conn.addPacket(packetToBeSent);
         }
+    }
+
+    public List<Message> getMessages(){
+        return messages;
+    }
+
+    public List<Message> getMessages(String channel){
+        return messages.stream().filter(m -> channel.equals(m.channel)).toList();
     }
 }

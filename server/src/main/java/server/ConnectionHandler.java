@@ -1,12 +1,21 @@
 package server;
 
-import common.networking.*;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.net.Socket;
-import java.util.concurrent.LinkedBlockingQueue;
+import common.networking.AbstractPacket;
+import common.networking.AddChannelResponsePacket;
+import common.networking.DuplexConnection;
+import common.networking.GetChannelsRequestPacket;
+import common.networking.LoginPacket;
+import common.networking.MessageToClientPacket;
+import common.networking.MessageToServerPacket;
+import common.objects.Message;
 
 /**
  * Haldab ühe kliendi ühendust serveriga.
@@ -58,9 +67,20 @@ public class ConnectionHandler implements Runnable {
         switch (packet) {
             case MessageToServerPacket msg ->
                     server.broadcastMessage(msg, username);
-            case GetChannelsRequestPacket ignored -> {
-                for (String channel : server.getChannelList()) {
-                    addPacket(new AddChannelResponsePacket(channel));
+            case GetChannelsRequestPacket channelRequest -> {
+                if (channelRequest.getRequestList()){
+                    for (String channel : server.getChannelList()) {
+                        addPacket(new AddChannelResponsePacket(channel));
+                    }
+                }
+                else{
+                    String channel = channelRequest.getChannel();
+                    List<Message> messages = server.getMessages(channel);
+                    for (Message message : messages){
+                        if ((channelRequest.getBefore() == null || message.time.compareTo(channelRequest.getBefore()) <= 0) && 
+                            (channelRequest.getNotBefore() == null || message.time.compareTo(channelRequest.getNotBefore()) > 0))
+                        addPacket(new MessageToClientPacket(channel, message.user, message.content, message.time, message.id));
+                    }
                 }
             }
             case LoginPacket login -> {
