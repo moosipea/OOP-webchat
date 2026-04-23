@@ -41,3 +41,5 @@ build/
 
 dependency-reduced-pom.xml
 *.db
+*.p12
+*.cer

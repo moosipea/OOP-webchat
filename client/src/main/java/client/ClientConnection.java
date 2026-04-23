@@ -5,10 +5,16 @@ import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
@@ -46,7 +52,30 @@ public class ClientConnection implements Runnable {
      */
     @Override
     public void run() {
-        try (Socket sock = new Socket(ip, port)) {
+        SSLSocketFactory sf;
+        KeyStore keyStore;
+
+        // TODO: sertifikaatide paremini saamine
+        // TODO: sertifikaat jar faili sisse pakitud?
+        try (FileInputStream fis = new FileInputStream("../client-truststore.p12")) {
+            keyStore = KeyStore.getInstance("PKCS12");
+            String password = "123456"; // FIXME: paroolindus
+            keyStore.load(fis, password.toCharArray());
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+            sf = sslContext.getSocketFactory();
+
+        } catch (Exception e){
+            log.error("Failed to initialise SSL context: {}", e.getMessage());
+            return;
+        }
+
+        try (SSLSocket sock = (SSLSocket) sf.createSocket(this.ip, this.port)) {
+            sock.startHandshake();
             DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
             duplexConnection.runConnection(this::handlePacket);
         } catch (IOException e) {
@@ -80,7 +109,7 @@ public class ClientConnection implements Runnable {
         addPacket(new GetChannelsRequestPacket());
     }
 
-    public void loginWithCredentials(String username, String password) {
+    public void loginWithCredentials(String username, String password) throws NoSuchAlgorithmException {
         addPacket(new LoginRequestPacket(username, password));
     }
 

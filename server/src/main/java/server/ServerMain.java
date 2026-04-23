@@ -1,22 +1,28 @@
 package server;
 
-import common.networking.packets.LoginRequestPacket;
-import common.networking.packets.MessageToClientPacket;
-import common.networking.packets.MessageToServerPacket;
-import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 /**
  * Serveri põhiklass.
@@ -52,10 +58,38 @@ public class ServerMain implements AutoCloseable {
      * Käivitab serveri.
      */
     public void start() {
+
         // Kasutame virtuaalseid lõimesid, et ei peaks mingi async asjadega eraldi jamama.
         // TODO: teha port konfigureeritavaks.
+
+        // TODO: kliendi poolel sama jura, abstraheerida
+
+        SSLServerSocketFactory ssf;
+        KeyStore keyStore;
+
+        try {
+            keyStore = KeyStore.getInstance("PKCS12");
+        } catch (KeyStoreException e) {
+            log.error("Key store exception: {}", e.getMessage());
+            return;
+        }
+
+        // TODO: paroolindus
+        try (FileInputStream fis = new FileInputStream("./keystore.p12")) {
+            String password = "123456";
+            keyStore.load(fis, password.toCharArray());
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, password.toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+            ssf = sslContext.getServerSocketFactory();
+        } catch (Exception e) {
+            log.error("Failed to create SSL context: {}", e.getMessage());
+            return;
+        }
+
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-             ServerSocket serverSocket = new ServerSocket(6969)) {
+             SSLServerSocket serverSocket = (SSLServerSocket) ssf.createServerSocket(6969)) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket client = serverSocket.accept(); // Blokib, kuni uus klient ühendab
