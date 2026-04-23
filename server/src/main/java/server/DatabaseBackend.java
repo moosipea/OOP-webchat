@@ -14,7 +14,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     private final Connection db;
 
     public DatabaseBackend() throws SQLException {
-        this.db = DriverManager.getConnection("jbdc:sqlite:chat.db");
+        this.db = DriverManager.getConnection("jdbc:sqlite:chat.db");
         createDatabase();
     }
 
@@ -27,7 +27,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                             VALUES (
                                 ?,
                                 ?,
-                                (SELECT users.user_id 
+                                (SELECT users.user_id
                                  FROM users 
                                  WHERE users.username = ?),
                                 (SELECT channels.channel_id
@@ -76,7 +76,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         try (
                 PreparedStatement st = db.prepareStatement(
                         """
-                            SELECT messages.content, 
+                            SELECT messages.content,
                                    users.username, 
                                    channels.channel_name, 
                                    message.message_timestamp
