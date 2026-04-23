@@ -1,0 +1,145 @@
+package server;
+
+import common.networking.MessageToClientPacket;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.sql.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DatabaseBackend implements ChatDataStore, AutoCloseable {
+    private static final Logger log = LogManager.getLogger(DatabaseBackend.class);
+    private final Connection db;
+
+    public DatabaseBackend() throws SQLException {
+        this.db = DriverManager.getConnection("jbdc:sqlite:chat.db");
+        createDatabase();
+    }
+
+    @Override
+    public void saveMessage(MessageToClientPacket message) {
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                            INSERT INTO messages (content, message_timestamp, author, channel)
+                            VALUES (
+                                ?,
+                                ?,
+                                (SELECT users.user_id 
+                                 FROM users 
+                                 WHERE users.username = ?),
+                                (SELECT channels.channel_id
+                                 FROM channels
+                                 WHERE channels.channel_name = ?)
+                            )
+                        """
+                )
+        ) {
+            st.setString(1, message.getContent());
+            st.setLong(2, message.getTimestamp().getTime());
+            st.setString(3, message.getUser());
+            st.setString(4, message.getTargetChannel());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Failed to save message: {}", e.getMessage());
+        }
+    }
+
+    // TODO: mõelda, mida teha juhul, kui sama nimega kanal juba eksisteerib?
+    //  Vahest peaks seda siiski raporteerima.
+    @Override
+    public void saveChannel(String channelName) {
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                            INSERT INTO channels (channel_name)
+                            VALUES (
+                                ? 
+                            )
+                            ON CONFLICT (channel_name) DO NOTHING;
+                        """
+                )
+        ) {
+            st.setString(1, channelName);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Failed to save channel: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MessageToClientPacket> retrieveMessages(String channelName, Timestamp from) {
+        List<MessageToClientPacket> messages = new ArrayList<>();
+
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                            SELECT messages.content, 
+                                   users.username, 
+                                   channels.channel_name, 
+                                   message.message_timestamp
+                            FROM messages, users, channels
+                            WHERE users.user_id = messages.author 
+                                AND channels.channel_id = messages.channel
+                                AND channels.channel_name = ?
+                                AND messages.message_timestamp >= ?
+                        """
+                )
+        ) {
+
+            st.setString(1, channelName);
+            st.setLong(1, from.getTime());
+
+            ResultSet resultSet = st.executeQuery();
+            while (resultSet.next()) {
+                String content = resultSet.getString(1);
+                String author = resultSet.getString(2);
+                String channel = resultSet.getString(3);
+                Timestamp timestamp = Timestamp.from(Instant.ofEpochSecond(resultSet.getLong(4)));
+                messages.add(new MessageToClientPacket(channel, author, content, timestamp));
+            }
+
+        } catch (SQLException e) {
+            log.error("Failed to query messages: {}", e.getMessage());
+        }
+
+        return messages;
+    }
+
+    private void createDatabase() throws SQLException {
+        // TODO: kas see kõik peaks olema transaction?
+
+        db.prepareStatement("""
+                                CREATE TABLE IF NOT EXISTS messages (
+                                	message_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                                	content TEXT NOT NULL,
+                                	message_timestamp INTEGER NOT NULL,
+                                	author INTEGER NOT NULL,
+                                	channel INTEGER NOT NULL,
+                                    FOREIGN KEY(author) REFERENCES users(user_id),
+                                    FOREIGN KEY(channel) REFERENCES channels(channel_id)
+                                )
+                            """).execute();
+
+        db.prepareStatement("""
+                                CREATE TABLE IF NOT EXISTS users (
+                                    user_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                                    username TEXT NOT NULL UNIQUE
+                                );
+                            """).execute();
+
+        db.prepareStatement("""
+                                CREATE TABLE IF NOT EXISTS channels (
+                            	    channel_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                            	    channel_name TEXT NOT NULL UNIQUE
+                                )
+                            """).execute();
+    }
+
+    @Override
+    public void close() throws SQLException {
+        db.close();
+    }
+}

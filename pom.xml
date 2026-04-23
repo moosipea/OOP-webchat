@@ -25,6 +25,7 @@
         <log4j.version>2.25.3</log4j.version>
         <javafx.version>21.0.2</javafx.version>
         <jackson.version>2.19.2</jackson.version>
+        <sqlite-jbdc.version>3.53.0.0</sqlite-jbdc.version>
     </properties>
 
     <!-- Centralized dependency versions -->
