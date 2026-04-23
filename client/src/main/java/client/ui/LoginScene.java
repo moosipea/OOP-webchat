@@ -8,8 +8,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.util.function.Consumer;
 
 /**
@@ -24,31 +26,26 @@ public class LoginScene extends Scene {
 
         TextField ipField = new TextField();
         TextField portField = new TextField();
-        TextField userField = new TextField();
-        PasswordField passField = new PasswordField();
-        Button loginButton = new Button("Connect");
 
-        // Kui nuppu on vajutatud:
-        loginButton.setOnAction(e -> {
-            if (userField.getText().isEmpty() || passField.getText().isEmpty()) {
-                return;
-            }
+        Button connectButton = new Button("Connect");
 
+        connectButton.setOnAction(e -> {
             try {
+                // Loome ühenduse
                 ClientConnection conn = new ClientConnection(ipField.getText(), portField.getText());
-                conn.loginWithCredentials(userField.getText(), passField.getText());
-                switchScene.accept(new MessageScene(conn, w, h));
+
+                // TODO: login/register popup
+                // TODO: kui register õnnestub, siis uuesti login popup
             } catch (UnknownHostException ex) {
-                // TODO: log error
+                // TODO: error popup
+                throw new RuntimeException(ex);
             }
         });
 
         setRoot(new VBox(
                 new HBox(new Label("IP: "), ipField),
                 new HBox(new Label("port: "), portField),
-                new HBox(new Label("user: "), userField),
-                new HBox(new Label("pass: "), passField),
-                loginButton
+                connectButton
         ));
     }
 }

@@ -31,7 +31,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                 ?,
                                 ?,
                                 (SELECT users.user_id
-                                 FROM users 
+                                 FROM users
                                  WHERE users.username = ?),
                                 (SELECT channels.channel_id
                                  FROM channels
@@ -81,7 +81,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                         """
                             SELECT messages.content,
                                    users.username,
-                                   channels.channel_name, 
+                                   channels.channel_name,
                                    message.message_timestamp
                             FROM messages, users, channels
                             WHERE users.user_id = messages.author 
@@ -195,7 +195,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                 CREATE TABLE IF NOT EXISTS channels (
                             	    channel_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                             	    channel_name TEXT NOT NULL UNIQUE,
-                                    CONSTRAINT check_channel_name_length CHECK (length(channel_name) > 0),
+                                    CONSTRAINT check_channel_name_length CHECK (length(channel_name) > 0)
                                 )
                             """).execute();
     }
