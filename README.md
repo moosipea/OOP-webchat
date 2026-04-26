@@ -1,12 +1,20 @@
 # OOP rühmatöö plaan
 
+Online chat rakendus (server + klient).
+
 ## I etapi lõpuks
 On lihtne UI, teksti vormindamine ja lihtne võrgusuhtlus.
 
-NB! Kuidas serverit testida: käivita server (intellij kaudu või buildi maveniga ja käivita jar), seejärel võid kasutada näiteks telneti ühendamiseks (`telnet localhost 6969`).
-NB! Praegu kliendi dev versiooni käivitamiseks minna client kausta ja jooksutata `mvn javafx:run`.
+## II etapiks (meil ei ole eriti plaaji ja on lihtsalt funktsioonid, mida me tahame implementeerida)
+krüpteeritud suhtlus ja kasutajad (koos registreerimise ja sisse logimisega)
 
-Online chat rakendus (server + klient).
+## Mida veel teha
+sõnumite salvestamine ja ajaloo haldamine.
+
+## Kuidas jooksutada
+ - Alguses jooksuta `mvn clean install` projekti juurkaustas.
+ - Genereeri TLS võtmed kasutades `generate_keys.sh`, kus paroolideks pane `123456`. Lõpus kui küsib, kas usaldada sertifikaati kirjuta `yes`. Muu info võid sisestada nagu tahad.
+ - Käivita server (intellij/code kaudu või buildi maveniga ja käivita jar), seejärel jooksuta klient kasutades `mvn javafx:run` peale client kausta minemist. Lokaalse serveriga ühendades võib ip ja port väljad tühjaks jätta (need täidetakse vaikeväärtustega).
 
 ## Liikmed
 Oskar Austa (github: oskarasd123) <br>
