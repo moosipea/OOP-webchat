@@ -111,6 +111,10 @@ public class ServerMain implements AutoCloseable {
         return chatDataStore.getChannels(forWhom);
     }
 
+    public List<MessageToClientPacket> getHistory(RequestHistoryPacket packet){
+        return chatDataStore.retrieveMessages(packet);
+    }
+
     /**
      * Edastab sõnumi kõigile ühendatud ja autenditud kasutajatele.
      */

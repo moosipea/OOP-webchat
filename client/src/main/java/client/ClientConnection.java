@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
@@ -121,6 +122,10 @@ public class ClientConnection implements Runnable {
         addPacket(new RegisterRequestPacket(username, password));
     }
 
+    public void requestHistory(String channel, Instant before, Instant notBefore){
+        addPacket(new RequestHistoryPacket(channel, before, notBefore));
+    }
+
     private void handlePacket(AbstractPacket packet) {
         switch (packet) {
             case MessageToClientPacket msg -> {
@@ -131,6 +136,8 @@ public class ClientConnection implements Runnable {
             case AddChannelResponsePacket addChannelResponse -> {
                 if (onChannelAdded != null) {
                     onChannelAdded.accept(addChannelResponse);
+                    requestHistory(addChannelResponse.getChannelName(), null, null);
+                    System.out.println("requesting history");
                 }
             }
             case RegisterResponsePacket registerResponsePacket -> {

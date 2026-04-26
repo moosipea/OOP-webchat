@@ -3,6 +3,7 @@ package server;
 import common.networking.packets.LoginRequestPacket;
 import common.networking.packets.MessageToClientPacket;
 import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.RequestHistoryPacket;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -15,7 +16,7 @@ public interface ChatDataStore {
     List<String> getChannels(String forWhom);
 
     // TODO: saata kliendile vahepeal saadetud sõnumeid
-    List<MessageToClientPacket> retrieveMessages(String channelName, Timestamp from);
+    List<MessageToClientPacket> retrieveMessages(RequestHistoryPacket packet);
 
     // TODO: List<MessageToClientPacket> retrieveLatestMessages(String channelName);
 
