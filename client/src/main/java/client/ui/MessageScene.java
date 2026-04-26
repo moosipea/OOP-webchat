@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import client.ClientConnection;
-import common.networking.MessageToClientPacket;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
@@ -23,9 +22,10 @@ public class MessageScene extends Scene {
     private final ChannelList channelList;
     private ScrollPane scrollPane;
 
-    public MessageScene(ClientConnection conn, double w, double h) {
+    public MessageScene(String stylesheet, ClientConnection conn, double w, double h) {
         // Midagi peame parentiks panema, paneme HBox
         super(new HBox(), w, h);
+        getStylesheets().add(stylesheet);
 
         // Ekraani vasakpoolne osa, kus on kanalid
         channelList = new ChannelList();
@@ -54,11 +54,12 @@ public class MessageScene extends Scene {
             }
         }));
 
-        conn.setOnChannelAdded((channelPacket) -> Platform.runLater(() -> {
-            addChannel(channelPacket.getChannelName());
-        }));
+        conn.setOnChannelAdded((channelPacket) -> {
+            Platform.runLater(() -> {
+                addChannel(channelPacket.getChannelName());
+            });
+        });
 
-        Thread.ofVirtual().start(conn); // See võib failida, peaks tagasi login ekraanile viskama
         conn.requestChannelList();
     }
 
@@ -87,11 +88,6 @@ public class MessageScene extends Scene {
         return messagesRoot;
     }
 
-    /**
-     * Teeb kõik, mida on vaja, et kliendil uus kanal tekiks
-     *
-     * @param channelName
-     */
     private void addChannel(String channelName) {
         if (channels.containsKey(channelName)) {
             return;

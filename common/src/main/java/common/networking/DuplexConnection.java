@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import common.networking.packets.AbstractPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,12 +17,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 public class DuplexConnection {
-    private final static ObjectMapper objectMapper = new ObjectMapper();
-    private final static JsonFactory jsonFactory = objectMapper.getFactory();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonFactory jsonFactory = objectMapper.getFactory();
     private static final Logger log = LogManager.getLogger(DuplexConnection.class);
 
     private final Socket socket;
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets;
+
+    private final CountDownLatch timeToBlowUpSignal = new CountDownLatch(1);
 
     public DuplexConnection(Socket socket, LinkedBlockingQueue<AbstractPacket> queuedPackets) {
         this.socket = socket;
@@ -31,8 +34,6 @@ public class DuplexConnection {
     public void runConnection(Consumer<AbstractPacket> handler) throws IOException {
         try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
-            CountDownLatch timeToBlowUpSignal = new CountDownLatch(1);
-
             Thread receiver = Thread.ofVirtual().start(() -> {
                 try {
                     Reader reader = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
@@ -40,8 +41,8 @@ public class DuplexConnection {
                     while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
                         if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
                             AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
-                            System.out.println("packet = " + packet);
                             handler.accept(packet);
+                            // TODO: handle funktsiooni asemel oleks võib-olla parem teha mingid subscriber asjad
                         }
                     }
                 } catch (IOException e) {
@@ -79,5 +80,10 @@ public class DuplexConnection {
         } catch (InterruptedException e) {
             // TODO: midagi siin teha
         }
+    }
+
+    // TODO: seda kutsuda siis, kui klient serverile soga annab näiteks
+    public void abort() {
+        timeToBlowUpSignal.countDown();
     }
 }

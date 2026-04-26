@@ -1,56 +1,100 @@
 package server;
 
-import common.networking.MessageToClientPacket;
-import common.networking.MessageToServerPacket;
+import common.networking.packets.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.*;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 /**
- * Serveri põhiklass. TODO: ilmselt võiks maini siia tõsta hoopis.
+ * Serveri põhiklass.
  */
-public class ServerMain {
+public class ServerMain implements AutoCloseable {
+    private static final Logger log = LogManager.getLogger(ServerMain.class);
+
     // Kõigi aktiivsete ühenduste hulk.
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers = new CopyOnWriteArraySet<>();
+    private final DatabaseBackend chatDataStore;
 
-    private final List<String> channelList = Collections.synchronizedList(new ArrayList<>());
+    public ServerMain() throws SQLException {
+        chatDataStore = new DatabaseBackend();
 
-    public ServerMain() {
         // Suvalised näidiskanalid
-        channelList.add("#general");
-        channelList.add("#server-loodud-kanal-1");
-        channelList.add("#server-loodud-kanal-2");
+        chatDataStore.saveChannel("#general");
+        chatDataStore.saveChannel("#server-loodud-kanal-1");
+        chatDataStore.saveChannel("#server-loodud-kanal-2");
     }
 
     public static void main(String[] args) {
-        new ServerMain().start();
+        try (ServerMain server = new ServerMain()) {
+            server.start();
+        } catch (SQLException e) {
+            log.error("Failed to initialise server due to SQL exception: {}", e.getMessage());
+            System.exit(1);
+        }
     }
 
     /**
      * Käivitab serveri.
      */
     public void start() {
+
         // Kasutame virtuaalseid lõimesid, et ei peaks mingi async asjadega eraldi jamama.
         // TODO: teha port konfigureeritavaks.
+
+        // TODO: kliendi poolel sama jura, abstraheerida
+
+        SSLServerSocketFactory ssf;
+        KeyStore keyStore;
+
+        try {
+            keyStore = KeyStore.getInstance("PKCS12");
+        } catch (KeyStoreException e) {
+            log.error("Key store exception: {}", e.getMessage());
+            return;
+        }
+
+        // TODO: paroolindus
+        try (FileInputStream fis = new FileInputStream("./keystore.p12")) {
+            String password = "123456";
+            keyStore.load(fis, password.toCharArray());
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, password.toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, new SecureRandom());
+            ssf = sslContext.getServerSocketFactory();
+        } catch (Exception e) {
+            log.error("Failed to create SSL context: {}", e.getMessage());
+            return;
+        }
+
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-             ServerSocket serverSocket = new ServerSocket(6969)) {
+             SSLServerSocket serverSocket = (SSLServerSocket) ssf.createServerSocket(6969)) {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket client = serverSocket.accept(); // Blokib, kuni uus klient ühendab
                     executor.submit(new ConnectionHandler(client, this)); // Loob sellele vastava handler'i.
-                } catch (IOException ignored) {
-                    // TODO: log exception, but don't crash!
+                } catch (IOException e) {
+                    log.error("Creating client connection failed, dismissing: {}", e.getMessage());
                 }
             }
         } catch (IOException e) {
-            // Siin võiks midagi targemat teha
+            // TODO: Siin võiks midagi targemat teha
             throw new RuntimeException(e);
         }
     }
@@ -63,19 +107,49 @@ public class ServerMain {
         allConnectionHandlers.remove(handler);
     }
 
-    public List<String> getChannelList() {
-        return channelList;
+    public List<String> getChannelList(String forWhom) {
+        return chatDataStore.getChannels(forWhom);
     }
 
     /**
      * Edastab sõnumi kõigile ühendatud ja autenditud kasutajatele.
      */
     public void broadcastMessage(MessageToServerPacket message, String author) {
-        // TODO: SIIN KOHA PEAL TOPPIDA ANDMEBAASI
         Timestamp now = Timestamp.from(Instant.now());
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
+
+        // TODO: see on sitt, tuleks teha mingi eraldi queue nende jaoks.
+        //  aga ma hetkel ei viitsi
+        // TODO: kasutada HikariCP-d
+        synchronized (this) {
+            chatDataStore.saveMessage(packetToBeSent);
+        }
+
         for (ConnectionHandler conn : allConnectionHandlers) {
             conn.addPacket(packetToBeSent);
+        }
+    }
+
+    @Override
+    public void close() {
+        try {
+            chatDataStore.close();
+        } catch (SQLException e) {
+            log.error("Closing database failed: {}", e.getMessage());
+        }
+    }
+
+    public boolean attemptToRegisterUser(RegisterRequestPacket registerPacket) {
+        // TODO: kasutada HikariCP-d
+        synchronized (this) {
+            return chatDataStore.attemptToRegisterUser(registerPacket);
+        }
+    }
+
+    public boolean attemptToLogInUser(LoginRequestPacket loginRequestPacket) {
+        // TODO: kasutada HikariCP-d
+        synchronized (this) {
+            return chatDataStore.attemptToLogInUser(loginRequestPacket);
         }
     }
 }

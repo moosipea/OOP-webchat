@@ -1,13 +1,19 @@
 package client;
 
 import common.networking.*;
+import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
@@ -21,10 +27,12 @@ public class ClientConnection implements Runnable {
     private final InetAddress ip;
     private final int port;
 
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+
     private Consumer<MessageToClientPacket> onMessageReceived = null;
     private Consumer<AddChannelResponsePacket> onChannelAdded = null;
-
-    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+    private Consumer<LoginResponsePacket> onLoginResponse = null;
+    private Consumer<RegisterResponsePacket> onRegisterResponse = null;
 
     public ClientConnection(String ip, String port) throws UnknownHostException {
         // default to localhost
@@ -40,30 +48,56 @@ public class ClientConnection implements Runnable {
         this.port = Integer.parseInt(port);
     }
 
-    /**
-     * Käivitab ühenduse serveriga.
-     */
-    @Override
-    public void run() {
-        try (Socket sock = new Socket(ip, port)) {
-            DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
-            duplexConnection.runConnection(this::handlePacket);
-        } catch (IOException e) {
-            log.error("IO exception, ending connection: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Määrab tegevuse, mis on tarvis teha saabunud sõnumi korral.
-     *
-     * @param onMessageReceived event handler
-     */
     public void setOnMessageReceived(Consumer<MessageToClientPacket> onMessageReceived) {
         this.onMessageReceived = onMessageReceived;
     }
 
     public void setOnChannelAdded(Consumer<AddChannelResponsePacket> onChannelAdded) {
         this.onChannelAdded = onChannelAdded;
+    }
+
+    public void setOnLoginResponse(Consumer<LoginResponsePacket> onLoginResponse) {
+        this.onLoginResponse = onLoginResponse;
+    }
+
+    public void setOnRegisterResponse(Consumer<RegisterResponsePacket> onRegisterResponse) {
+        this.onRegisterResponse = onRegisterResponse;
+    }
+
+    /**
+     * Käivitab ühenduse serveriga.
+     */
+    @Override
+    public void run() {
+        SSLSocketFactory sf;
+        KeyStore keyStore;
+
+        // TODO: sertifikaatide paremini saamine
+        // TODO: sertifikaat jar faili sisse pakitud?
+        try (FileInputStream fis = new FileInputStream("../client-truststore.p12")) {
+            keyStore = KeyStore.getInstance("PKCS12");
+            String password = "123456"; // FIXME: paroolindus
+            keyStore.load(fis, password.toCharArray());
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+            sf = sslContext.getSocketFactory();
+
+        } catch (Exception e) {
+            log.error("Failed to initialise SSL context: {}", e.getMessage());
+            return;
+        }
+
+        try (SSLSocket sock = (SSLSocket) sf.createSocket(this.ip, this.port)) {
+            sock.startHandshake();
+            DuplexConnection duplexConnection = new DuplexConnection(sock, queuedPackets);
+            duplexConnection.runConnection(this::handlePacket);
+        } catch (IOException e) {
+            log.error("IO exception, ending connection: {}", e.getMessage());
+        }
     }
 
     /**
@@ -80,7 +114,11 @@ public class ClientConnection implements Runnable {
     }
 
     public void loginWithCredentials(String username, String password) {
-        addPacket(new LoginPacket(username, password));
+        addPacket(new LoginRequestPacket(username, password));
+    }
+
+    public void registerWithCredentials(String username, String password) {
+        addPacket(new RegisterRequestPacket(username, password));
     }
 
     private void handlePacket(AbstractPacket packet) {
@@ -93,6 +131,16 @@ public class ClientConnection implements Runnable {
             case AddChannelResponsePacket addChannelResponse -> {
                 if (onChannelAdded != null) {
                     onChannelAdded.accept(addChannelResponse);
+                }
+            }
+            case RegisterResponsePacket registerResponsePacket -> {
+                if (onRegisterResponse != null) {
+                    onRegisterResponse.accept(registerResponsePacket);
+                }
+            }
+            case LoginResponsePacket loginResponsePacket -> {
+                if (onLoginResponse != null) {
+                    onLoginResponse.accept(loginResponsePacket);
                 }
             }
             default -> log.warn("Unexpected packet: {}", packet);

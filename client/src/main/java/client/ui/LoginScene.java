@@ -1,6 +1,7 @@
 package client.ui;
 
 import client.ClientConnection;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -8,47 +9,115 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.UnknownHostException;
-import java.util.function.Consumer;
 
 /**
  * Stseen sserveriga ühendamiseks. Kasutaja saab sisaldaad serveri andmed
  * (IP, port) ja oma kasutajanime ning salasõna (TBD) ning seejärel ühendada.
  */
 public class LoginScene extends Scene {
-    // TODO: switchScene Consumer'ina tundub nagu halb
-    public LoginScene(Consumer<Scene> switchScene, double w, double h) {
+    private static final Logger log = LogManager.getLogger(LoginScene.class);
+
+    public LoginScene(String stylesheet, Stage stage, double w, double h) {
         // Jõle kahtlane, aga see töötab
         super(new VBox(), w, h);
+        getStylesheets().add(stylesheet);
 
         TextField ipField = new TextField();
         TextField portField = new TextField();
-        TextField userField = new TextField();
-        PasswordField passField = new PasswordField();
-        Button loginButton = new Button("Connect");
 
-        // Kui nuppu on vajutatud:
-        loginButton.setOnAction(e -> {
-            if (userField.getText().isEmpty() || passField.getText().isEmpty()) {
-                return;
-            }
+        Button connectButton = new Button("Connect");
 
+        connectButton.setOnAction(e -> {
             try {
+                // Loome ühenduse
                 ClientConnection conn = new ClientConnection(ipField.getText(), portField.getText());
-                conn.loginWithCredentials(userField.getText(), passField.getText());
-                switchScene.accept(new MessageScene(conn, w, h));
+
+                // TODO: kui nüüd teise lõime sees error, siis tuleks midagi siin teha ka
+                Thread.ofVirtual().start(conn);
+
+                AuthDialog authDialog = new AuthDialog(conn);
+                authDialog.show();
+
+                conn.setOnLoginResponse(response -> {
+                    if (response.isSuccess()) {
+                        Platform.runLater(() -> {
+                            stage.setScene(new MessageScene(stylesheet, conn, w, h));
+                            authDialog.close();
+                        });
+                    } else {
+                        log.error("Login failed!");
+                        // TODO: report login error (popup)
+                        // TODO: üldse võiks olla mingi staatiline abimeetod popupide tegemiseks
+                    }
+                });
+
+                conn.setOnRegisterResponse(response -> {
+                    if (response.isSuccess()) {
+                        conn.loginWithCredentials(authDialog.getEnteredUsername(), authDialog.getEnteredPassword());
+                    } else {
+                        log.error("Registering failed!");
+                        // TODO: report login error (popup)
+                    }
+                });
+
             } catch (UnknownHostException ex) {
-                // TODO: log error
+                // TODO: error popup
+                throw new RuntimeException(ex);
             }
         });
 
         setRoot(new VBox(
                 new HBox(new Label("IP: "), ipField),
                 new HBox(new Label("port: "), portField),
-                new HBox(new Label("user: "), userField),
-                new HBox(new Label("pass: "), passField),
-                loginButton
+                connectButton
         ));
+    }
+
+    private static class AuthDialog extends Stage {
+        private String enteredUsername;
+        private String enteredPassword;
+
+        public AuthDialog(ClientConnection conn) {
+            initModality(Modality.WINDOW_MODAL);
+
+            TextField usernameField = new TextField();
+            PasswordField passwordField = new PasswordField();
+            Button loginButton = new Button("Login");
+            Button registerButton = new Button("Register");
+
+            loginButton.setOnAction(e -> {
+                enteredUsername = usernameField.getText();
+                enteredPassword = passwordField.getText();
+                conn.loginWithCredentials(enteredUsername, enteredPassword);
+            });
+
+            registerButton.setOnAction(e -> {
+                enteredUsername = usernameField.getText();
+                enteredPassword = passwordField.getText();
+                conn.registerWithCredentials(enteredUsername, enteredPassword);
+            });
+
+            Scene dialogScene = new Scene(new VBox(
+                    usernameField,
+                    passwordField,
+                    new HBox(loginButton, registerButton)
+            ));
+
+            setScene(dialogScene);
+        }
+
+        public String getEnteredUsername() {
+            return enteredUsername;
+        }
+
+        public String getEnteredPassword() {
+            return enteredPassword;
+        }
     }
 }
