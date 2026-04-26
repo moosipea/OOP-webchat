@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = LoginResponsePacket.class, name = "login_response"),
         @JsonSubTypes.Type(value = RegisterRequestPacket.class, name = "register_request"),
         @JsonSubTypes.Type(value = RegisterResponsePacket.class, name = "register_response"),
+        @JsonSubTypes.Type(value = RequestHistoryPacket.class, name = "history_request"),
 })
 public abstract class AbstractPacket {
 }

@@ -3,7 +3,7 @@ package common.networking.packets;
 import java.sql.Timestamp;
 
 public class MessageToClientPacket extends MessageToServerPacket {
-    private Timestamp timestamp = null;
+    private Timestamp timestamp = null; // TODO: kas on ikka vaja kasutada java.sql.Timestamp java.time.Instant asemel? ei.
     private String user;
 
     public MessageToClientPacket(String targetChannel, String user, String content, Timestamp timestamp) {

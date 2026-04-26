@@ -79,6 +79,14 @@ public class ConnectionHandler implements Runnable {
                     addPacket(new LoginResponsePacket(success));
                 }
             }
+            case RequestHistoryPacket requestHistory -> {
+                String channel = requestHistory.getChannel();
+                var messages = server.getHistory(channel);
+                for (var message : messages){
+                    addPacket(message);
+                }
+                System.out.println("sent history of channel " + channel + " with " + messages.size() + " messages");
+            }
             default -> log.warn("Unexpected packet: {}", packet);
         }
     }

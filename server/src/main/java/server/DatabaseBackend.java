@@ -111,7 +111,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                             SELECT messages.content,
                                    users.username,
                                    channels.channel_name,
-                                   message.message_timestamp
+                                   messages.message_timestamp
                             FROM messages, users, channels
                             WHERE users.user_id = messages.author
                                 AND channels.channel_id = messages.channel
@@ -123,7 +123,8 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         ) {
 
             st.setString(1, channelName);
-            st.setLong(1, from.getTime());
+            st.setLong(2, from.getTime());
+            System.out.println(st.toString());
 
             ResultSet resultSet = st.executeQuery();
             while (resultSet.next()) {
