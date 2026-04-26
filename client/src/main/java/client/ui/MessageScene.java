@@ -54,9 +54,11 @@ public class MessageScene extends Scene {
             }
         }));
 
-        conn.setOnChannelAdded((channelPacket) -> Platform.runLater(() -> {
-            addChannel(channelPacket.getChannelName());
-        }));
+        conn.setOnChannelAdded((channelPacket) -> {
+            Platform.runLater(() -> {
+                addChannel(channelPacket.getChannelName());
+            });
+        });
 
         conn.requestChannelList();
     }

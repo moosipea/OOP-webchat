@@ -82,6 +82,7 @@ public class DuplexConnection {
         }
     }
 
+    // TODO: seda kutsuda siis, kui klient serverile soga annab näiteks
     public void abort() {
         timeToBlowUpSignal.countDown();
     }

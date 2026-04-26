@@ -11,6 +11,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.UnknownHostException;
 
@@ -19,6 +21,8 @@ import java.net.UnknownHostException;
  * (IP, port) ja oma kasutajanime ning salasõna (TBD) ning seejärel ühendada.
  */
 public class LoginScene extends Scene {
+    private static final Logger log = LogManager.getLogger(LoginScene.class);
+
     public LoginScene(String stylesheet, Stage stage, double w, double h) {
         // Jõle kahtlane, aga see töötab
         super(new VBox(), w, h);
@@ -47,6 +51,7 @@ public class LoginScene extends Scene {
                             authDialog.close();
                         });
                     } else {
+                        log.error("Login failed!");
                         // TODO: report login error (popup)
                         // TODO: üldse võiks olla mingi staatiline abimeetod popupide tegemiseks
                     }
@@ -56,6 +61,7 @@ public class LoginScene extends Scene {
                     if (response.isSuccess()) {
                         conn.loginWithCredentials(authDialog.getEnteredUsername(), authDialog.getEnteredPassword());
                     } else {
+                        log.error("Registering failed!");
                         // TODO: report login error (popup)
                     }
                 });
