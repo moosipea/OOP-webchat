@@ -41,8 +41,8 @@ public class DuplexConnection {
                     while (jsonParser.nextToken() != null && !Thread.currentThread().isInterrupted()) {
                         if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
                             AbstractPacket packet = objectMapper.readValue(jsonParser, AbstractPacket.class);
-                            System.out.println("packet = " + packet);
                             handler.accept(packet);
+                            // TODO: handle funktsiooni asemel oleks võib-olla parem teha mingid subscriber asjad
                         }
                     }
                 } catch (IOException e) {

@@ -13,7 +13,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
@@ -28,10 +27,12 @@ public class ClientConnection implements Runnable {
     private final InetAddress ip;
     private final int port;
 
+    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+
     private Consumer<MessageToClientPacket> onMessageReceived = null;
     private Consumer<AddChannelResponsePacket> onChannelAdded = null;
-
-    private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
+    private Consumer<LoginResponsePacket> onLoginResponse = null;
+    private Consumer<RegisterResponsePacket> onRegisterResponse = null;
 
     public ClientConnection(String ip, String port) throws UnknownHostException {
         // default to localhost
@@ -45,6 +46,22 @@ public class ClientConnection implements Runnable {
 
         this.ip = InetAddress.getByName(ip);
         this.port = Integer.parseInt(port);
+    }
+
+    public void setOnMessageReceived(Consumer<MessageToClientPacket> onMessageReceived) {
+        this.onMessageReceived = onMessageReceived;
+    }
+
+    public void setOnChannelAdded(Consumer<AddChannelResponsePacket> onChannelAdded) {
+        this.onChannelAdded = onChannelAdded;
+    }
+
+    public void setOnLoginResponse(Consumer<LoginResponsePacket> onLoginResponse) {
+        this.onLoginResponse = onLoginResponse;
+    }
+
+    public void setOnRegisterResponse(Consumer<RegisterResponsePacket> onRegisterResponse) {
+        this.onRegisterResponse = onRegisterResponse;
     }
 
     /**
@@ -69,7 +86,7 @@ public class ClientConnection implements Runnable {
             sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
             sf = sslContext.getSocketFactory();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Failed to initialise SSL context: {}", e.getMessage());
             return;
         }
@@ -81,19 +98,6 @@ public class ClientConnection implements Runnable {
         } catch (IOException e) {
             log.error("IO exception, ending connection: {}", e.getMessage());
         }
-    }
-
-    /**
-     * Määrab tegevuse, mis on tarvis teha saabunud sõnumi korral.
-     *
-     * @param onMessageReceived event handler
-     */
-    public void setOnMessageReceived(Consumer<MessageToClientPacket> onMessageReceived) {
-        this.onMessageReceived = onMessageReceived;
-    }
-
-    public void setOnChannelAdded(Consumer<AddChannelResponsePacket> onChannelAdded) {
-        this.onChannelAdded = onChannelAdded;
     }
 
     /**
@@ -109,8 +113,12 @@ public class ClientConnection implements Runnable {
         addPacket(new GetChannelsRequestPacket());
     }
 
-    public void loginWithCredentials(String username, String password) throws NoSuchAlgorithmException {
+    public void loginWithCredentials(String username, String password) {
         addPacket(new LoginRequestPacket(username, password));
+    }
+
+    public void registerWithCredentials(String username, String password) {
+        addPacket(new RegisterRequestPacket(username, password));
     }
 
     private void handlePacket(AbstractPacket packet) {
@@ -123,6 +131,16 @@ public class ClientConnection implements Runnable {
             case AddChannelResponsePacket addChannelResponse -> {
                 if (onChannelAdded != null) {
                     onChannelAdded.accept(addChannelResponse);
+                }
+            }
+            case RegisterResponsePacket registerResponsePacket -> {
+                if (onRegisterResponse != null) {
+                    onRegisterResponse.accept(registerResponsePacket);
+                }
+            }
+            case LoginResponsePacket loginResponsePacket -> {
+                if (onLoginResponse != null) {
+                    onLoginResponse.accept(loginResponsePacket);
                 }
             }
             default -> log.warn("Unexpected packet: {}", packet);

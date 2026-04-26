@@ -73,6 +73,35 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     }
 
     @Override
+    public List<String> getChannels(String forWhom) {
+        List<String> channels = new ArrayList<>();
+
+        // TODO: teeme tabeli, mis seob kasutaja kanaliga. Siis saame teha
+        //  sellise SQL päringu, mis tagastab ainult need kanalid, milles
+        //  sellel kasutajal on lubatud rääkida.
+        try (
+                PreparedStatement st = db.prepareStatement(
+                        """
+                            SELECT channel_name
+                            FROM channels
+                        """
+                )
+        ) {
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                String channelName = rs.getString(1);
+                channels.add(channelName);
+            }
+        } catch (SQLException e) {
+            log.error("Failed to get channel list: {}", e.getMessage());
+        }
+
+        // TODO: tühja listi asemel võiks exceptioni teha
+        return channels;
+    }
+
+    @Override
     public List<MessageToClientPacket> retrieveMessages(String channelName, Timestamp from) {
         List<MessageToClientPacket> messages = new ArrayList<>();
 
@@ -84,7 +113,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                    channels.channel_name,
                                    message.message_timestamp
                             FROM messages, users, channels
-                            WHERE users.user_id = messages.author 
+                            WHERE users.user_id = messages.author
                                 AND channels.channel_id = messages.channel
                                 AND channels.channel_name = ?
                                 AND messages.message_timestamp >= ?
@@ -133,6 +162,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
             return false;
         }
 
+        log.info("Registered user {}", registerPacket.getUsername());
         return true;
     }
 
@@ -141,7 +171,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         try (
                 PreparedStatement st = db.prepareStatement(
                         """
-                        SELECT username, password_hash
+                        SELECT count(*)
                         FROM users
                         WHERE username = ? AND password_hash = ?
                         """
@@ -151,16 +181,15 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
             st.setBlob(2, new ByteArrayInputStream(loginPacket.getPasswordHash()));
             ResultSet rs = st.executeQuery();
 
-            if (rs.first()) {
+            if (rs.getInt(1) == 1) {
                 return true;
             }
 
         } catch (SQLException e) {
-            log.error("Failed to loign user: {}", e.getMessage());
-            return false;
+            log.error("Failed to log in user: {}", e.getMessage());
         }
 
-        return true;
+        return false;
     }
 
     private void createDatabase() throws SQLException {

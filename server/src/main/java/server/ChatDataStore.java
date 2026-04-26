@@ -12,10 +12,11 @@ public interface ChatDataStore {
 
     void saveChannel(String channelName);
 
+    List<String> getChannels(String forWhom);
+
     List<MessageToClientPacket> retrieveMessages(String channelName, Timestamp from);
 
-    // TODO
-    // List<MessageToClientPacket> retrieveLatestMessages(String channelName);
+    // TODO: List<MessageToClientPacket> retrieveLatestMessages(String channelName);
 
     boolean attemptToRegisterUser(RegisterRequestPacket registerPacket);
     boolean attemptToLogInUser(LoginRequestPacket loginPacket);

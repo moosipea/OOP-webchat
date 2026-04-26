@@ -1,16 +1,10 @@
 package common.networking.packets;
 
-public class RegisterResponsePacket extends AbstractPacket {
-    private boolean success;
-
+public class RegisterResponsePacket extends LoginResponsePacket {
     public RegisterResponsePacket(boolean success) {
-        this.success = success;
+        super(success);
     }
 
     public RegisterResponsePacket() {
-    }
-
-    public boolean isSuccess() {
-        return success;
     }
 }

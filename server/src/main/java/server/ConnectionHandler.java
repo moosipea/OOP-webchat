@@ -60,7 +60,7 @@ public class ConnectionHandler implements Runnable {
             case MessageToServerPacket msg ->
                     server.broadcastMessage(msg, username);
             case GetChannelsRequestPacket ignored -> {
-                for (String channel : server.getChannelList()) {
+                for (String channel : server.getChannelList(username)) {
                     addPacket(new AddChannelResponsePacket(channel));
                 }
             }

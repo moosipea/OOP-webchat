@@ -15,8 +15,6 @@ import java.security.*;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -31,8 +29,6 @@ public class ServerMain implements AutoCloseable {
 
     // Kõigi aktiivsete ühenduste hulk.
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers = new CopyOnWriteArraySet<>();
-
-    private final List<String> channelList = Collections.synchronizedList(new ArrayList<>());
     private final DatabaseBackend chatDataStore;
 
     public ServerMain() throws SQLException {
@@ -111,8 +107,8 @@ public class ServerMain implements AutoCloseable {
         allConnectionHandlers.remove(handler);
     }
 
-    public List<String> getChannelList() {
-        return channelList;
+    public List<String> getChannelList(String forWhom) {
+        return chatDataStore.getChannels(forWhom);
     }
 
     /**
