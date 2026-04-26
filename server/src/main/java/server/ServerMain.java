@@ -111,9 +111,8 @@ public class ServerMain implements AutoCloseable {
         return chatDataStore.getChannels(forWhom);
     }
 
-    public List<MessageToClientPacket> getHistory(String channel){
-        // TODO: implementeerida before ja notBefore
-        return chatDataStore.retrieveMessages(channel, Timestamp.from(Instant.now().minusSeconds(2*24*3600)));
+    public List<MessageToClientPacket> getHistory(RequestHistoryPacket packet){
+        return chatDataStore.retrieveMessages(packet);
     }
 
     /**

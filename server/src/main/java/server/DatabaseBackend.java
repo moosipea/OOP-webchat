@@ -3,6 +3,8 @@ package server;
 import common.networking.packets.LoginRequestPacket;
 import common.networking.packets.MessageToClientPacket;
 import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.RequestHistoryPacket;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -102,7 +104,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     }
 
     @Override
-    public List<MessageToClientPacket> retrieveMessages(String channelName, Timestamp from) {
+    public List<MessageToClientPacket> retrieveMessages(RequestHistoryPacket packet) {
         List<MessageToClientPacket> messages = new ArrayList<>();
 
         try (
@@ -116,15 +118,24 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                             WHERE users.user_id = messages.author
                                 AND channels.channel_id = messages.channel
                                 AND channels.channel_name = ?
-                                AND messages.message_timestamp >= ?
+                                AND messages.message_timestamp > ?
+                                AND messages.message_timestamp <= ?
                             ORDER BY messages.message_timestamp
                         """
                 )
         ) {
 
-            st.setString(1, channelName);
-            st.setLong(2, from.getTime());
-            System.out.println(st.toString());
+            st.setString(1, packet.getChannel());
+            long notBefore = 0;
+            if (packet.getNotBefore() != null){
+                notBefore  = packet.getNotBefore().toEpochMilli();
+            }
+            st.setLong(2, notBefore);
+            long before = Long.MAX_VALUE;
+            if (packet.getNotBefore() != null){
+                before  = packet.getBefore().toEpochMilli();
+            }
+            st.setLong(3, before);
 
             ResultSet resultSet = st.executeQuery();
             while (resultSet.next()) {

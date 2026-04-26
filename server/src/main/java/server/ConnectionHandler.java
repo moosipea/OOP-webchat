@@ -81,7 +81,7 @@ public class ConnectionHandler implements Runnable {
             }
             case RequestHistoryPacket requestHistory -> {
                 String channel = requestHistory.getChannel();
-                var messages = server.getHistory(channel);
+                var messages = server.getHistory(requestHistory);
                 for (var message : messages){
                     addPacket(message);
                 }
