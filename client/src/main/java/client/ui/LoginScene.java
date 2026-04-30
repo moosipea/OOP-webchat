@@ -107,46 +107,4 @@ public class LoginScene extends Scene {
                     errorField
         ));
     }
-
-    private static class AuthDialog extends Stage {
-        private String enteredUsername;
-        private String enteredPassword;
-
-        public AuthDialog(ClientConnection conn) {
-            initModality(Modality.WINDOW_MODAL);
-
-            TextField usernameField = new TextField();
-            PasswordField passwordField = new PasswordField();
-            Button loginButton = new Button("Login");
-            Button registerButton = new Button("Register");
-
-            loginButton.setOnAction(e -> {
-                enteredUsername = usernameField.getText();
-                enteredPassword = passwordField.getText();
-                conn.loginWithCredentials(enteredUsername, enteredPassword);
-            });
-
-            registerButton.setOnAction(e -> {
-                enteredUsername = usernameField.getText();
-                enteredPassword = passwordField.getText();
-                conn.registerWithCredentials(enteredUsername, enteredPassword);
-            });
-
-            Scene dialogScene = new Scene(new VBox(
-                    usernameField,
-                    passwordField,
-                    new HBox(loginButton, registerButton)
-            ));
-
-            setScene(dialogScene);
-        }
-
-        public String getEnteredUsername() {
-            return enteredUsername;
-        }
-
-        public String getEnteredPassword() {
-            return enteredPassword;
-        }
-    }
 }
