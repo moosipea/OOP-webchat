@@ -42,14 +42,11 @@ public class LoginScene extends Scene {
                 // TODO: kui nüüd teise lõime sees error, siis tuleks midagi siin teha ka
                 Thread.ofVirtual().start(conn);
 
-                //AuthDialog authDialog = new AuthDialog(conn);
-                //authDialog.show();
-
                 TextField usernameField = new TextField();
                 PasswordField passwordField = new PasswordField();
                 Button loginButton = new Button("Login");
                 Button registerButton = new Button("Register");
-                errorField.setText("");
+                errorField.setText(""); // on siin, kuna ei saa uuesti errorField-ile midagi määrata
 
                 loginButton.setOnAction(e2 -> {
                     String enteredUsername = usernameField.getText();
@@ -89,8 +86,8 @@ public class LoginScene extends Scene {
                     }
                 });
                 setRoot(new VBox(
-                            usernameField,
-                            passwordField,
+                            new HBox(new Label("username: "), usernameField),
+                            new HBox(new Label("password: "), passwordField),
                             new HBox(loginButton, registerButton),
                             errorField
                 ));
