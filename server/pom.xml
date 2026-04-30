@@ -34,6 +34,12 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>${sqlite-jbdc.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari-cp.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

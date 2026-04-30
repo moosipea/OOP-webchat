@@ -58,7 +58,6 @@ public class DuplexConnection {
                         try {
                             AbstractPacket packetToBeSent = queuedPackets.take();
                             String packet = objectMapper.writeValueAsString(packetToBeSent);
-                            System.out.println("sending: " + packet);
                             out.write(packet);
                             out.flush();
                         } catch (InterruptedException e) {

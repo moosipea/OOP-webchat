@@ -15,11 +15,9 @@ public interface ChatDataStore {
 
     List<String> getChannels(String forWhom);
 
-    // TODO: saata kliendile vahepeal saadetud sõnumeid
     List<MessageToClientPacket> retrieveMessages(RequestHistoryPacket packet);
 
-    // TODO: List<MessageToClientPacket> retrieveLatestMessages(String channelName);
-
     boolean attemptToRegisterUser(RegisterRequestPacket registerPacket);
+
     boolean attemptToLogInUser(LoginRequestPacket loginPacket);
 }

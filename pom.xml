@@ -26,6 +26,7 @@
         <javafx.version>21.0.2</javafx.version>
         <jackson.version>2.19.2</jackson.version>
         <sqlite-jbdc.version>3.53.0.0</sqlite-jbdc.version>
+        <hikari-cp.version>7.0.2</hikari-cp.version>
     </properties>
 
     <!-- Centralized dependency versions -->

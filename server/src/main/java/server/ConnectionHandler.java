@@ -80,12 +80,9 @@ public class ConnectionHandler implements Runnable {
                 }
             }
             case RequestHistoryPacket requestHistory -> {
-                String channel = requestHistory.getChannel();
-                var messages = server.getHistory(requestHistory);
-                for (var message : messages){
+                for (MessageToClientPacket message : server.getHistory(requestHistory)) {
                     addPacket(message);
                 }
-                System.out.println("sent history of channel " + channel + " with " + messages.size() + " messages");
             }
             default -> log.warn("Unexpected packet: {}", packet);
         }
