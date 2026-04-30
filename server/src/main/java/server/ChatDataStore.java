@@ -5,7 +5,6 @@ import common.networking.packets.MessageToClientPacket;
 import common.networking.packets.RegisterRequestPacket;
 import common.networking.packets.RequestHistoryPacket;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 public interface ChatDataStore {

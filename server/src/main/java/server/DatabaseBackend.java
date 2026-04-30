@@ -10,7 +10,6 @@ import common.networking.packets.RequestHistoryPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.plaf.nimbus.State;
 import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.time.Instant;
@@ -222,7 +221,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         // TODO: siia panna lätaki ressurssid
         try (
                 Connection db = dataSource.getConnection();
-                Statement st = db.createStatement();
+                Statement st = db.createStatement()
         ) {
             st.addBatch(
                     """
