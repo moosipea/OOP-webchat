@@ -30,6 +30,7 @@ public class LoginScene extends Scene {
 
         TextField ipField = new TextField();
         TextField portField = new TextField();
+        Label errorField = new Label();
 
         Button connectButton = new Button("Connect");
 
@@ -41,41 +42,69 @@ public class LoginScene extends Scene {
                 // TODO: kui nüüd teise lõime sees error, siis tuleks midagi siin teha ka
                 Thread.ofVirtual().start(conn);
 
-                AuthDialog authDialog = new AuthDialog(conn);
-                authDialog.show();
+                //AuthDialog authDialog = new AuthDialog(conn);
+                //authDialog.show();
 
+                TextField usernameField = new TextField();
+                PasswordField passwordField = new PasswordField();
+                Button loginButton = new Button("Login");
+                Button registerButton = new Button("Register");
+                errorField.setText("");
+
+                loginButton.setOnAction(e2 -> {
+                    String enteredUsername = usernameField.getText();
+                    String enteredPassword = passwordField.getText();
+                    conn.loginWithCredentials(enteredUsername, enteredPassword);
+                });
+
+                registerButton.setOnAction(e2 -> {
+                    String enteredUsername = usernameField.getText();
+                    String enteredPassword = passwordField.getText();
+                    conn.setOnRegisterResponse(response -> {
+                        if (response.isSuccess()) {
+                            conn.loginWithCredentials(enteredUsername, enteredPassword);
+                        } else {
+                            log.error("Registering failed!");
+                            Platform.runLater(() ->{
+                                errorField.setText("Registering failed!");
+                            });
+                        }
+                    });
+                    conn.registerWithCredentials(enteredUsername, enteredPassword);
+
+                });
+
+                
+                
                 conn.setOnLoginResponse(response -> {
                     if (response.isSuccess()) {
                         Platform.runLater(() -> {
                             stage.setScene(new MessageScene(stylesheet, conn, w, h));
-                            authDialog.close();
                         });
                     } else {
                         log.error("Login failed!");
-                        // TODO: report login error (popup)
-                        // TODO: üldse võiks olla mingi staatiline abimeetod popupide tegemiseks
+                        Platform.runLater(() ->{
+                            errorField.setText("Login failed!");
+                        });
                     }
                 });
-
-                conn.setOnRegisterResponse(response -> {
-                    if (response.isSuccess()) {
-                        conn.loginWithCredentials(authDialog.getEnteredUsername(), authDialog.getEnteredPassword());
-                    } else {
-                        log.error("Registering failed!");
-                        // TODO: report login error (popup)
-                    }
-                });
-
+                setRoot(new VBox(
+                            usernameField,
+                            passwordField,
+                            new HBox(loginButton, registerButton),
+                            errorField
+                ));
+                
             } catch (UnknownHostException ex) {
-                // TODO: error popup
-                throw new RuntimeException(ex);
+                errorField.setText("Can't connect to server.");
             }
         });
 
         setRoot(new VBox(
-                new HBox(new Label("IP: "), ipField),
-                new HBox(new Label("port: "), portField),
-                connectButton
+                    new HBox(new Label("IP: "), ipField),
+                    new HBox(new Label("port: "), portField),
+                    connectButton,
+                    errorField
         ));
     }
 

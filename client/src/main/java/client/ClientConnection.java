@@ -37,7 +37,7 @@ public class ClientConnection implements Runnable {
 
     public ClientConnection(String ip, String port) throws UnknownHostException {
         // default to localhost
-        if (port.isEmpty()) {
+        if (ip.isEmpty()) {
             ip = "localhost";
         }
         // default to port 6969
