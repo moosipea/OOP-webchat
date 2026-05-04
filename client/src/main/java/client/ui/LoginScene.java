@@ -62,7 +62,7 @@ public class LoginScene extends Scene {
                             conn.loginWithCredentials(enteredUsername, enteredPassword);
                         } else {
                             log.error("Registering failed!");
-                            Platform.runLater(() ->{
+                            Platform.runLater(() -> {
                                 errorField.setText("Registering failed!");
                             });
                         }
@@ -71,8 +71,6 @@ public class LoginScene extends Scene {
 
                 });
 
-                
-                
                 conn.setOnLoginResponse(response -> {
                     if (response.isSuccess()) {
                         Platform.runLater(() -> {
@@ -80,28 +78,28 @@ public class LoginScene extends Scene {
                         });
                     } else {
                         log.error("Login failed!");
-                        Platform.runLater(() ->{
+                        Platform.runLater(() -> {
                             errorField.setText("Login failed!");
                         });
                     }
                 });
                 setRoot(new VBox(
-                            new HBox(new Label("username: "), usernameField),
-                            new HBox(new Label("password: "), passwordField),
-                            new HBox(loginButton, registerButton),
-                            errorField
+                        new HBox(new Label("username: "), usernameField),
+                        new HBox(new Label("password: "), passwordField),
+                        new HBox(loginButton, registerButton),
+                        errorField
                 ));
-                
+
             } catch (UnknownHostException ex) {
                 errorField.setText("Can't connect to server.");
             }
         });
 
         setRoot(new VBox(
-                    new HBox(new Label("IP: "), ipField),
-                    new HBox(new Label("port: "), portField),
-                    connectButton,
-                    errorField
+                new HBox(new Label("IP: "), ipField),
+                new HBox(new Label("port: "), portField),
+                connectButton,
+                errorField
         ));
     }
 }
