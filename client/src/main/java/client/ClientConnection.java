@@ -137,7 +137,6 @@ public class ClientConnection implements Runnable {
                 if (onChannelAdded != null) {
                     onChannelAdded.accept(addChannelResponse);
                     requestHistory(addChannelResponse.getChannelName(), null, null);
-                    System.out.println("requesting history");
                 }
             }
             case RegisterResponsePacket registerResponsePacket -> {

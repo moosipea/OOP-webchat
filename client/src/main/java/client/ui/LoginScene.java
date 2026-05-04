@@ -9,7 +9,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,27 +61,21 @@ public class LoginScene extends Scene {
                             conn.loginWithCredentials(enteredUsername, enteredPassword);
                         } else {
                             log.error("Registering failed!");
-                            Platform.runLater(() -> {
-                                errorField.setText("Registering failed!");
-                            });
+                            Platform.runLater(() -> errorField.setText("Registering failed!"));
                         }
                     });
                     conn.registerWithCredentials(enteredUsername, enteredPassword);
-
                 });
 
                 conn.setOnLoginResponse(response -> {
                     if (response.isSuccess()) {
-                        Platform.runLater(() -> {
-                            stage.setScene(new MessageScene(stylesheet, conn, w, h));
-                        });
+                        Platform.runLater(() -> stage.setScene(new MessageScene(stylesheet, conn, w, h)));
                     } else {
                         log.error("Login failed!");
-                        Platform.runLater(() -> {
-                            errorField.setText("Login failed!");
-                        });
+                        Platform.runLater(() -> errorField.setText("Login failed!"));
                     }
                 });
+
                 setRoot(new VBox(
                         new HBox(new Label("username: "), usernameField),
                         new HBox(new Label("password: "), passwordField),
