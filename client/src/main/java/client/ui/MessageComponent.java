@@ -10,8 +10,8 @@ import javafx.scene.text.TextFlow;
  * Esindab üht sõnumit UI komponendina (võimaldab tekstivormingut).
  */
 public class MessageComponent extends TextFlow {
-    long time;
-    long id;
+    public long time;
+    public long id;
     public MessageComponent(String author, String rawContent, long time, long id) {
         this.time = time;
         this.id = id;

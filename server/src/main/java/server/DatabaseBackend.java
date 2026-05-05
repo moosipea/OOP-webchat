@@ -1,20 +1,24 @@
 package server;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import common.networking.packets.LoginRequestPacket;
-import common.networking.packets.MessageToClientPacket;
-import common.networking.packets.RegisterRequestPacket;
-import common.networking.packets.RequestHistoryPacket;
+import java.io.ByteArrayInputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.sql.*;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import common.networking.packets.LoginRequestPacket;
+import common.networking.packets.MessageToClientPacket;
+import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.RequestHistoryPacket;
 
 public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     private static final Logger log = LogManager.getLogger(DatabaseBackend.class);
@@ -143,7 +147,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                     AND messages.message_timestamp > ?
                                     AND messages.message_timestamp <= ?
                                 ORDER BY messages.message_timestamp DESC
-                                LIMIT 100
+                                LIMIT 20
                             ) AS recent_messages
                             ORDER BY message_timestamp ASC;
                         """
@@ -151,15 +155,9 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         ) {
 
             st.setString(1, packet.getChannel());
-            long notBefore = 0;
-            if (packet.getNotBefore() != null) {
-                notBefore = packet.getNotBefore().toEpochMilli();
-            }
+            long notBefore = packet.getNotBefore();
             st.setLong(2, notBefore);
-            long before = Long.MAX_VALUE;
-            if (packet.getNotBefore() != null) {
-                before = packet.getBefore().toEpochMilli();
-            }
+            long before = packet.getBefore();
             st.setLong(3, before);
 
             ResultSet resultSet = st.executeQuery();
@@ -168,9 +166,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                 String content = resultSet.getString(2);
                 String author = resultSet.getString(3);
                 String channel = resultSet.getString(4);
-                System.out.println(content + " " + channel);
-                long timestamp = resultSet.getLong(4);
-
+                long timestamp = resultSet.getLong(5);
                 messages.add(new MessageToClientPacket(channel, author, content, timestamp, id));
             }
 
