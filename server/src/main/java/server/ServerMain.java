@@ -111,7 +111,7 @@ public class ServerMain implements AutoCloseable {
         return chatDataStore.getChannels(forWhom);
     }
 
-    public List<MessageToClientPacket> getHistory(RequestHistoryPacket packet){
+    public List<MessageToClientPacket> getHistory(RequestHistoryPacket packet) {
         return chatDataStore.retrieveMessages(packet);
     }
 
@@ -122,12 +122,7 @@ public class ServerMain implements AutoCloseable {
         Timestamp now = Timestamp.from(Instant.now());
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
 
-        // TODO: see on sitt, tuleks teha mingi eraldi queue nende jaoks.
-        //  aga ma hetkel ei viitsi
-        // TODO: kasutada HikariCP-d
-        synchronized (this) {
-            chatDataStore.saveMessage(packetToBeSent);
-        }
+        chatDataStore.saveMessage(packetToBeSent);
 
         for (ConnectionHandler conn : allConnectionHandlers) {
             conn.addPacket(packetToBeSent);
@@ -136,24 +131,14 @@ public class ServerMain implements AutoCloseable {
 
     @Override
     public void close() {
-        try {
-            chatDataStore.close();
-        } catch (SQLException e) {
-            log.error("Closing database failed: {}", e.getMessage());
-        }
+        chatDataStore.close();
     }
 
     public boolean attemptToRegisterUser(RegisterRequestPacket registerPacket) {
-        // TODO: kasutada HikariCP-d
-        synchronized (this) {
-            return chatDataStore.attemptToRegisterUser(registerPacket);
-        }
+        return chatDataStore.attemptToRegisterUser(registerPacket);
     }
 
     public boolean attemptToLogInUser(LoginRequestPacket loginRequestPacket) {
-        // TODO: kasutada HikariCP-d
-        synchronized (this) {
-            return chatDataStore.attemptToLogInUser(loginRequestPacket);
-        }
+        return chatDataStore.attemptToLogInUser(loginRequestPacket);
     }
 }
