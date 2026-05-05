@@ -119,17 +119,22 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                 Connection db = dataSource.getConnection();
                 PreparedStatement st = db.prepareStatement(
                         """
-                            SELECT messages.content,
-                                   users.username,
-                                   channels.channel_name,
-                                   messages.message_timestamp
-                            FROM messages, users, channels
-                            WHERE users.user_id = messages.author
-                                AND channels.channel_id = messages.channel
-                                AND channels.channel_name = ?
-                                AND messages.message_timestamp > ?
-                                AND messages.message_timestamp <= ?
-                            ORDER BY messages.message_timestamp
+                            SELECT *
+                            FROM (
+                                SELECT messages.content,
+                                    users.username,
+                                    channels.channel_name,
+                                    messages.message_timestamp
+                                FROM messages
+                                JOIN users ON users.user_id = messages.author
+                                JOIN channels ON channels.channel_id = messages.channel
+                                WHERE channels.channel_name = ?
+                                    AND messages.message_timestamp > ?
+                                    AND messages.message_timestamp <= ?
+                                ORDER BY messages.message_timestamp DESC
+                                LIMIT 100
+                            ) AS recent_messages
+                            ORDER BY message_timestamp ASC;
                         """
                 )
         ) {
