@@ -1,5 +1,7 @@
 package client.ui;
 
+import java.time.Instant;
+
 import client.formatting.FormattingParser;
 import client.formatting.TextSection;
 import javafx.scene.control.Label;
@@ -10,7 +12,11 @@ import javafx.scene.text.TextFlow;
  * Esindab üht sõnumit UI komponendina (võimaldab tekstivormingut).
  */
 public class MessageComponent extends TextFlow {
-    public MessageComponent(String author, String rawContent) {
+    Instant time;
+    long id;
+    public MessageComponent(String author, String rawContent, Instant time, long id) {
+        this.time = time;
+        this.id = id;
         // Näitame sõnumi autorit.
         Label authorLabel = new Label(author);
         authorLabel.getStyleClass().add("pirukas-bold");

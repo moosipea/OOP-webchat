@@ -45,14 +45,24 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                                  FROM channels
                                  WHERE channels.channel_name = ?)
                             )
-                        """
+                        """,
+                        Statement.RETURN_GENERATED_KEYS
                 )
         ) {
             st.setString(1, message.getContent());
-            st.setLong(2, message.getTimestamp().getTime());
+            st.setLong(2, message.getTimestamp().toEpochMilli());
             st.setString(3, message.getUser());
             st.setString(4, message.getTargetChannel());
             st.executeUpdate();
+            int affectedRows = st.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet rs = st.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        message.setId(rs.getLong(1));
+                    }
+                }
+            }
         } catch (SQLException e) {
             log.error("Failed to save message: {}", e.getMessage());
         }
@@ -121,7 +131,8 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                         """
                             SELECT *
                             FROM (
-                                SELECT messages.content,
+                                SELECT messages.message_id,
+                                    messages.content,
                                     users.username,
                                     channels.channel_name,
                                     messages.message_timestamp
@@ -153,11 +164,13 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
 
             ResultSet resultSet = st.executeQuery();
             while (resultSet.next()) {
-                String content = resultSet.getString(1);
-                String author = resultSet.getString(2);
-                String channel = resultSet.getString(3);
-                Timestamp timestamp = Timestamp.from(Instant.ofEpochSecond(resultSet.getLong(4)));
-                messages.add(new MessageToClientPacket(channel, author, content, timestamp));
+                long id = Long.parseLong(resultSet.getString(1));
+                String content = resultSet.getString(2);
+                String author = resultSet.getString(3);
+                String channel = resultSet.getString(4);
+                Instant timestamp = Instant.ofEpochMilli(resultSet.getLong(4));
+
+                messages.add(new MessageToClientPacket(channel, author, content, timestamp, id));
             }
 
         } catch (SQLException e) {

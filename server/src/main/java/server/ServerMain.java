@@ -119,12 +119,12 @@ public class ServerMain implements AutoCloseable {
      * Edastab sõnumi kõigile ühendatud ja autenditud kasutajatele.
      */
     public void broadcastMessage(MessageToServerPacket message, String author) {
-        Timestamp now = Timestamp.from(Instant.now());
-        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
-
+        Instant now = Instant.now();
+        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now, -1);
         chatDataStore.saveMessage(packetToBeSent);
-
+        
         for (ConnectionHandler conn : allConnectionHandlers) {
+            System.out.println("broadcast message");
             conn.addPacket(packetToBeSent);
         }
     }
