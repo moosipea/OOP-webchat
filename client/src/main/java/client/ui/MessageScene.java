@@ -50,7 +50,7 @@ public class MessageScene extends Scene {
         conn.setOnMessageReceived((msg) -> Platform.runLater(() -> {
             MessageList channel = channels.get(msg.getTargetChannel());
             if (channel != null) {
-                channel.addMessage(msg.getUser(), msg.getContent());
+                channel.addMessage(msg.getUser(), msg.getContent(), msg.getTimestampMillis(), msg.getId());
             }
         }));
 

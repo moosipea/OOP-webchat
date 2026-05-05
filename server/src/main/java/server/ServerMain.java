@@ -1,24 +1,31 @@
 package server;
 
-import common.networking.packets.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.SecureRandom;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import common.networking.packets.LoginRequestPacket;
+import common.networking.packets.MessageToClientPacket;
+import common.networking.packets.MessageToServerPacket;
+import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.RequestHistoryPacket;
 
 
 /**
@@ -119,9 +126,8 @@ public class ServerMain implements AutoCloseable {
      * Edastab sõnumi kõigile ühendatud ja autenditud kasutajatele.
      */
     public void broadcastMessage(MessageToServerPacket message, String author) {
-        Timestamp now = Timestamp.from(Instant.now());
-        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
-
+        long now = Instant.now().toEpochMilli();
+        MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now, -1);
         chatDataStore.saveMessage(packetToBeSent);
 
         for (ConnectionHandler conn : allConnectionHandlers) {

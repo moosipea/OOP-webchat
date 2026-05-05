@@ -1,15 +1,7 @@
 package client;
 
-import common.networking.*;
-import common.networking.packets.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
@@ -17,6 +9,26 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import common.networking.DuplexConnection;
+import common.networking.packets.AbstractPacket;
+import common.networking.packets.AddChannelResponsePacket;
+import common.networking.packets.GetChannelsRequestPacket;
+import common.networking.packets.LoginRequestPacket;
+import common.networking.packets.LoginResponsePacket;
+import common.networking.packets.MessageToClientPacket;
+import common.networking.packets.MessageToServerPacket;
+import common.networking.packets.RegisterRequestPacket;
+import common.networking.packets.RegisterResponsePacket;
+import common.networking.packets.RequestHistoryPacket;
 
 /**
  * Haldab kliendi ühendust serveriga.
