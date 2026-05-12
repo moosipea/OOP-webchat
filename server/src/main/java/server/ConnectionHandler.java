@@ -60,7 +60,13 @@ public class ConnectionHandler implements Runnable {
             case MessageToServerPacket msg -> {
                 if (msg.getContent().startsWith("/")) {
                     if (!server.tryRunCommand(msg, this)) {
-                        // TODO: saata kliendile error message
+                        // Saadame error sõnumi kliendile, kuna sellist käsku serveris ei olnud
+                        addPacket(new MessageToClientPacket(
+                                msg.getTargetChannel(),
+                                null,
+                                String.format("Unknown command: '%s'", msg.getContent()),
+                                null
+                        ));
                     }
                 } else {
                     server.broadcastMessage(msg, username);

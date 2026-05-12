@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.networking.packets.AbstractPacket;
+import common.networking.packets.PackagedPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,9 +57,14 @@ public class DuplexConnection {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         try {
-                            AbstractPacket packetToBeSent = queuedPackets.take();
-                            String packet = objectMapper.writeValueAsString(packetToBeSent);
-                            out.write(packet);
+                            AbstractPacket packet = queuedPackets.take();
+                            if (packet instanceof PackagedPacket packaged) {
+                                for (AbstractPacket p : packaged.getPackets()) {
+                                    out.write(objectMapper.writeValueAsString(p));
+                                }
+                            } else {
+                                out.write(objectMapper.writeValueAsString(packet));
+                            }
                             out.flush();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();

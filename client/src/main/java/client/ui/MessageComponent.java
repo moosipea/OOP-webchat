@@ -12,13 +12,17 @@ import javafx.scene.text.TextFlow;
 public class MessageComponent extends TextFlow {
     public MessageComponent(String author, String rawContent) {
         // Näitame sõnumi autorit.
-        Label authorLabel = new Label(author);
-        authorLabel.getStyleClass().add("pirukas-bold");
-        authorLabel.setTextFill(pickUserColor(author));
+        // Kui autor on null, siis eeldatavasti on sõnum pärit serverilt
+        // endalt.
+        if (author != null) {
+            Label authorLabel = new Label(author);
+            authorLabel.getStyleClass().add("pirukas-bold");
+            authorLabel.setTextFill(pickUserColor(author));
 
-        // Autori ja sisu vahele koolon.
-        Label separator = new Label(": ");
-        getChildren().addAll(authorLabel, separator);
+            // Autori ja sisu vahele koolon.
+            Label separator = new Label(": ");
+            getChildren().addAll(authorLabel, separator);
+        }
 
         // Parsime sõnumi vormindatud kujule ja lisame sektsiooni kaupa.
         FormattingParser formattingParser = new FormattingParser(rawContent);

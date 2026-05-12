@@ -3,6 +3,7 @@ package server;
 import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import server.commands.MotdCommand;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -41,6 +42,9 @@ public class ServerMain implements AutoCloseable {
         chatDataStore.saveChannel("#general");
         chatDataStore.saveChannel("#server-loodud-kanal-1");
         chatDataStore.saveChannel("#server-loodud-kanal-2");
+
+        // Käsud
+        commands.add(new MotdCommand());
     }
 
     public static void main(String[] args) {
@@ -147,7 +151,7 @@ public class ServerMain implements AutoCloseable {
 
     public boolean tryRunCommand(MessageToServerPacket msg, ConnectionHandler conn) {
         for (ServerCommand command : commands) {
-            if (command.run(msg.getContent(), conn)) {
+            if (command.run(msg, conn)) {
                 return true;
             }
         }
