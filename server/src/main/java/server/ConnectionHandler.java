@@ -57,8 +57,15 @@ public class ConnectionHandler implements Runnable {
         }
 
         switch (packet) {
-            case MessageToServerPacket msg ->
+            case MessageToServerPacket msg -> {
+                if (msg.getContent().startsWith("/")) {
+                    if (!server.tryRunCommand(msg, this)) {
+                        // TODO: saata kliendile error message
+                    }
+                } else {
                     server.broadcastMessage(msg, username);
+                }
+            }
             case GetChannelsRequestPacket ignored -> {
                 for (String channel : server.getChannelList(username)) {
                     addPacket(new AddChannelResponsePacket(channel));
