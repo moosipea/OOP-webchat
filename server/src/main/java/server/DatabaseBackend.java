@@ -239,7 +239,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                             JOIN channels c ON uc.channel = c.channel_id
                         WHERE c.channel_name = ?
                         """
-                );
+                )
         ) {
             st.setString(1, channel);
             ResultSet rs = st.executeQuery();

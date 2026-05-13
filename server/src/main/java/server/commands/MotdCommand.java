@@ -34,4 +34,9 @@ public class MotdCommand implements ServerCommand {
         conn.addPacket(new PackagedPacket(lines));
         return true;
     }
+
+    @Override
+    public String description() {
+        return "Print the message of the day.";
+    }
 }

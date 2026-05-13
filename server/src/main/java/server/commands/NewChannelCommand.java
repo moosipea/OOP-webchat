@@ -9,4 +9,9 @@ public class NewChannelCommand implements ServerCommand {
     public boolean run(MessageToServerPacket msg, ConnectionHandler conn) {
         return false;
     }
+
+    @Override
+    public String description() {
+        return "Create a new channel.";
+    }
 }

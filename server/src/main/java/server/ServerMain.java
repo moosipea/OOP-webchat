@@ -49,7 +49,7 @@ public class ServerMain implements AutoCloseable {
         // Käsud
         commands.add(new MotdCommand());
         commands.add(new NewChannelCommand());
-        commands.add(new WhisperCommand());
+        commands.add(new WhisperCommand(this::broadcastToSingleUser));
     }
 
     public static void main(String[] args) {
@@ -143,6 +143,16 @@ public class ServerMain implements AutoCloseable {
             }
             conn.addPacket(packetToBeSent);
         }
+    }
+
+    public boolean broadcastToSingleUser(String target, MessageToClientPacket packet) {
+        for (ConnectionHandler conn : allConnectionHandlers) {
+            if (conn.getUsername().equals(target)) {
+                conn.addPacket(packet);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
