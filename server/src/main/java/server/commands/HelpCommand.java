@@ -11,22 +11,20 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MotdCommand implements ServerCommand {
-    private static String MOTD =
-            """
-            * =============================================== *
-            * LTAT.03.03 Objektorienteeritud programmeerimine *
-            * Maailma parim webchat server! *
-            * Tilbert Tolber Wolbert Nolbert *
-            * =============================================== *
-            """;
+public class HelpCommand implements ServerCommand {
+    List<ServerCommand> commands;
+
+    public HelpCommand(List<ServerCommand> commands) {
+        this.commands = commands;
+    }
 
     @Override
     public void run(MessageToServerPacket msg, ConnectionHandler conn) {
         Timestamp timestamp = Timestamp.from(Instant.now());
         List<MessageToClientPacket> lines = new ArrayList<>();
 
-        for (String line : MOTD.split("\n")) {
+        for (ServerCommand cmd : commands) {
+            String line = cmd.prefix() + " - " + cmd.description();
             lines.add(new MessageToClientPacket(msg.getTargetChannel(), null, line, timestamp));
         }
 
@@ -35,11 +33,11 @@ public class MotdCommand implements ServerCommand {
 
     @Override
     public String description() {
-        return "Print the message of the day.";
+        return "Print this menu.";
     }
 
     @Override
     public String prefix() {
-        return "/motd";
+        return "/help";
     }
 }

@@ -6,12 +6,17 @@ import server.ServerCommand;
 
 public class NewChannelCommand implements ServerCommand {
     @Override
-    public boolean run(MessageToServerPacket msg, ConnectionHandler conn) {
-        return false;
+    public void run(MessageToServerPacket msg, ConnectionHandler conn) {
+        // TODO
     }
 
     @Override
     public String description() {
         return "Create a new channel.";
+    }
+
+    @Override
+    public String prefix() {
+        return "/newchannel";
     }
 }

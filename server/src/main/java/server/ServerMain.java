@@ -3,6 +3,7 @@ package server;
 import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import server.commands.HelpCommand;
 import server.commands.MotdCommand;
 import server.commands.NewChannelCommand;
 import server.commands.WhisperCommand;
@@ -50,6 +51,7 @@ public class ServerMain implements AutoCloseable {
         commands.add(new MotdCommand());
         commands.add(new NewChannelCommand());
         commands.add(new WhisperCommand(this::broadcastToSingleUser));
+        commands.add(new HelpCommand(commands));
     }
 
     public static void main(String[] args) {
@@ -170,10 +172,20 @@ public class ServerMain implements AutoCloseable {
 
     public boolean tryRunCommand(MessageToServerPacket msg, ConnectionHandler conn) {
         for (ServerCommand command : commands) {
-            if (command.run(msg, conn)) {
+            if (isCommand(msg.getContent(), command.prefix())) {
+                command.run(msg, conn);
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean isCommand(String input, String targetCommand) {
+        if (input == null || input.isEmpty()) return false;
+
+        String[] parts = input.split("\\s+", 2);
+        String firstWord = parts[0];
+
+        return firstWord.equalsIgnoreCase(targetCommand);
     }
 }

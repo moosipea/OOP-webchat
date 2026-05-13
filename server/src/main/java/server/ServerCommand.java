@@ -7,7 +7,9 @@ import common.networking.packets.MessageToServerPacket;
  * tähenedab, et läks läbi.
  */
 public interface ServerCommand {
-    boolean run(MessageToServerPacket msg, ConnectionHandler conn);
+    void run(MessageToServerPacket msg, ConnectionHandler conn);
 
     String description();
+
+    String prefix();
 }

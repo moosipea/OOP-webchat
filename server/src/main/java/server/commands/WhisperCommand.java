@@ -41,7 +41,7 @@ public class WhisperCommand implements ServerCommand {
     }
 
     @Override
-    public boolean run(MessageToServerPacket msg, ConnectionHandler conn) {
+    public void run(MessageToServerPacket msg, ConnectionHandler conn) {
         Matcher m = pattern.matcher(msg.getContent());
 
         if (m.find()) {
@@ -70,15 +70,16 @@ public class WhisperCommand implements ServerCommand {
                         Timestamp.from(Instant.now())
                 ));
             }
-
-            return true;
         }
-
-        return false;
     }
 
     @Override
     public String description() {
         return "Whisper something to another user privately.";
+    }
+
+    @Override
+    public String prefix() {
+        return "/whisper";
     }
 }
