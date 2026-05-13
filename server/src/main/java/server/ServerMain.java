@@ -4,6 +4,8 @@ import common.networking.packets.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import server.commands.MotdCommand;
+import server.commands.NewChannelCommand;
+import server.commands.WhisperCommand;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -18,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,18 +36,20 @@ public class ServerMain implements AutoCloseable {
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers = new CopyOnWriteArraySet<>();
     private final DatabaseBackend chatDataStore;
 
-    private List<ServerCommand> commands = new ArrayList<>();
+    private final List<ServerCommand> commands = new ArrayList<>();
 
     public ServerMain() throws SQLException {
         chatDataStore = new DatabaseBackend();
 
         // Suvalised näidiskanalid
-        chatDataStore.saveChannel("#general");
-        chatDataStore.saveChannel("#server-loodud-kanal-1");
-        chatDataStore.saveChannel("#server-loodud-kanal-2");
+        chatDataStore.saveChannel("#general", true);
+        chatDataStore.saveChannel("#server-loodud-kanal-1", true);
+        chatDataStore.saveChannel("#server-loodud-kanal-2", true);
 
         // Käsud
         commands.add(new MotdCommand());
+        commands.add(new NewChannelCommand());
+        commands.add(new WhisperCommand());
     }
 
     public static void main(String[] args) {
@@ -130,8 +135,12 @@ public class ServerMain implements AutoCloseable {
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
 
         chatDataStore.saveMessage(packetToBeSent);
+        Set<String> allowedUsers = chatDataStore.getChannelUsers(packetToBeSent.getTargetChannel());
 
         for (ConnectionHandler conn : allConnectionHandlers) {
+            if (!allowedUsers.contains(conn.getUsername())) {
+                continue;
+            }
             conn.addPacket(packetToBeSent);
         }
     }

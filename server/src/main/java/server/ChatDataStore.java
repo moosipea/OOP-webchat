@@ -6,11 +6,12 @@ import common.networking.packets.RegisterRequestPacket;
 import common.networking.packets.RequestHistoryPacket;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ChatDataStore {
     void saveMessage(MessageToClientPacket message);
 
-    void saveChannel(String channelName);
+    void saveChannel(String channelName, boolean publicChannel);
 
     List<String> getChannels(String forWhom);
 
@@ -19,4 +20,6 @@ public interface ChatDataStore {
     boolean attemptToRegisterUser(RegisterRequestPacket registerPacket);
 
     boolean attemptToLogInUser(LoginRequestPacket loginPacket);
+
+    Set<String> getChannelUsers(String channel);
 }

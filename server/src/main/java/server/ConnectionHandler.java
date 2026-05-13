@@ -20,13 +20,16 @@ public class ConnectionHandler implements Runnable {
     private final ServerMain server;
 
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
-
     private String username;
     private boolean authenticated = false;
 
     public ConnectionHandler(Socket client, ServerMain server) {
         this.client = client;
         this.server = server;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     /**

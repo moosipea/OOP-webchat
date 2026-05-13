@@ -13,8 +13,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.sql.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     private static final Logger log = LogManager.getLogger(DatabaseBackend.class);
@@ -26,6 +25,13 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         config.setMaximumPoolSize(16);
         dataSource = new HikariDataSource(config);
         createDatabase();
+
+        // Muidu see server ei lase ühendust lahti korralikult.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (!dataSource.isClosed()) {
+                dataSource.close();
+            }
+        }));
     }
 
     @Override
@@ -61,13 +67,14 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     // TODO: mõelda, mida teha juhul, kui sama nimega kanal juba eksisteerib?
     //  Vahest peaks seda siiski raporteerima.
     @Override
-    public void saveChannel(String channelName) {
+    public void saveChannel(String channelName, boolean publicChannel) {
         try (
                 Connection db = dataSource.getConnection();
                 PreparedStatement st = db.prepareStatement(
                         """
-                            INSERT INTO channels (channel_name)
+                            INSERT INTO channels (channel_name, is_private)
                             VALUES (
+                                ?,
                                 ?
                             )
                             ON CONFLICT (channel_name) DO NOTHING;
@@ -75,6 +82,7 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                 )
         ) {
             st.setString(1, channelName);
+            st.setBoolean(2, !publicChannel);
             st.executeUpdate();
         } catch (SQLException e) {
             log.error("Failed to save channel: {}", e.getMessage());
@@ -85,9 +93,6 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     public List<String> getChannels(String forWhom) {
         List<String> channels = new ArrayList<>();
 
-        // TODO: teeme tabeli, mis seob kasutaja kanaliga. Siis saame teha
-        //  sellise SQL päringu, mis tagastab ainult need kanalid, milles
-        //  sellel kasutajal on lubatud rääkida.
         try (
                 Connection db = dataSource.getConnection();
                 PreparedStatement st = db.prepareStatement(
@@ -220,10 +225,38 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         return false;
     }
 
+    @Override
+    public Set<String> getChannelUsers(String channel) {
+        Set<String> allowedUsers = new HashSet<>();
+
+        try (
+                Connection db = dataSource.getConnection();
+                PreparedStatement st = db.prepareStatement(
+                        """
+                        SELECT u.username
+                        FROM users_channels uc
+                            JOIN users u ON uc.theuser = u.user_id
+                            JOIN channels c ON uc.channel = c.channel_id
+                        WHERE c.channel_name = ?
+                        """
+                );
+        ) {
+            st.setString(1, channel);
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                allowedUsers.add(rs.getString(1));
+            }
+
+            return allowedUsers;
+        } catch (SQLException e) {
+            log.error("Failed to get channel users: {}", e.getMessage());
+        }
+
+        return allowedUsers;
+    }
+
     private void createDatabase() throws SQLException {
-        // TODO: kas see kõik peaks olema transaction? korrektsuse mõttes
-        //  vist küll, aga praktikas vahet pole
-        // TODO: siia panna lätaki ressurssid
         try (
                 Connection db = dataSource.getConnection();
                 Statement st = db.createStatement()
@@ -244,24 +277,11 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
 
             st.addBatch(
                     """
-                    CREATE TABLE IF NOT EXISTS messages (
-                        message_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
-                        content TEXT NOT NULL,
-                        message_timestamp INTEGER NOT NULL,
-                        author INTEGER NOT NULL,
-                        channel INTEGER NOT NULL,
-                        FOREIGN KEY (author) REFERENCES users(user_id),
-                        FOREIGN KEY (channel) REFERENCES channels(channel_id)
-                    )
-                    """
-            );
-
-            st.addBatch(
-                    """
                     CREATE TABLE IF NOT EXISTS users (
                         user_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                         username TEXT NOT NULL UNIQUE,
                         password_hash BLOB NOT NULL,
+                        is_admin INTEGER DEFAULT 0 NOT NULL,
                         CONSTRAINT check_username_length CHECK (length(username) > 0),
                         CONSTRAINT check_hash_length CHECK (length(password_hash) = 32)
                     );
@@ -273,8 +293,64 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                     CREATE TABLE IF NOT EXISTS channels (
                         channel_id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                         channel_name TEXT NOT NULL UNIQUE,
+                        is_private INTEGER DEFAULT 0 NOT NULL,
                         CONSTRAINT check_channel_name_length CHECK (length(channel_name) > 0)
                     )
+                    """
+            );
+
+            st.addBatch(
+                    """
+                    CREATE TABLE IF NOT EXISTS users_channels (
+                        channel INTEGER NOT NULL,
+                        theuser INTEGER NOT NULL,
+                        has_perms INTEGER DEFAULT 0 NOT NULL,
+                        FOREIGN KEY (channel) REFERENCES channels(channel_id),
+                        FOREIGN KEY (theuser) REFERENCES users(user_id),
+                        CONSTRAINT unique_channel_user UNIQUE (channel, theuser)
+                    )
+                    """
+            );
+
+            // Andmebaasi triger, mis lisab registreerunud kasutaja
+            // kõikidesse avalikesse kanalitesse.
+            st.addBatch(
+                    """
+                    CREATE TRIGGER IF NOT EXISTS tg_add_to_public
+                    AFTER INSERT
+                    ON users
+                    FOR EACH ROW
+                    BEGIN
+                        INSERT INTO users_channels (channel, theuser)
+                        SELECT channel_id, NEW.user_id
+                        FROM channels
+                        WHERE NOT is_private;
+                    END;
+                    """
+            );
+
+            // Andmebaasi triger, mis lisab kõik kasutajad äsja loodud
+            // kanalisse, kui see on avalik.
+            // Siin peab natuke süntaksiga nihverdama, kuna SQLite ei luba
+            // kõiki asju trigerite sees.
+            st.addBatch(
+                    """
+                    CREATE TRIGGER IF NOT EXISTS tg_add_to_new_public
+                    AFTER INSERT
+                    ON channels
+                    FOR EACH ROW
+                    WHEN NOT NEW.is_private
+                    BEGIN
+                        INSERT INTO users_channels (channel, theuser)
+                        SELECT NEW.channel_id, user_id
+                        FROM users
+                        WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM users_channels
+                            WHERE channel = NEW.channel_id
+                              AND theuser = users.user_id
+                        );
+                    END;
                     """
             );
 
