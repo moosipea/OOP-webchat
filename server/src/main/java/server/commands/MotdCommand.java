@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MotdCommand implements ServerCommand {
-    private static String MOTD =
+    private static final String MOTD =
             """
             * =============================================== *
             * LTAT.03.03 Objektorienteeritud programmeerimine *

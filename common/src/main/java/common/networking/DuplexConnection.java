@@ -91,4 +91,9 @@ public class DuplexConnection {
     public void abort() {
         timeToBlowUpSignal.countDown();
     }
+
+    @Override
+    public String toString() {
+        return socket.toString();
+    }
 }

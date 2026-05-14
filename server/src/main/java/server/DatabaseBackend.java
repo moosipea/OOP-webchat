@@ -25,13 +25,6 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
         config.setMaximumPoolSize(16);
         dataSource = new HikariDataSource(config);
         createDatabase();
-
-        // Muidu see server ei lase ühendust lahti korralikult.
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (!dataSource.isClosed()) {
-                dataSource.close();
-            }
-        }));
     }
 
     @Override
@@ -90,6 +83,33 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     }
 
     @Override
+    public boolean addUserToChannel(String username, String channel, boolean hasPerms) {
+        try (
+                Connection db = dataSource.getConnection();
+                PreparedStatement st = db.prepareStatement(
+                        """
+                        INSERT INTO users_channels (channel, theuser, has_perms)
+                        VALUES (
+                            (SELECT channel_id FROM channels WHERE channel_name = ?),
+                            (SELECT user_id FROM users WHERE username = ?),
+                            ?
+                        )
+                        """
+                )
+        ) {
+            st.setString(1, channel);
+            st.setString(2, username);
+            st.setBoolean(3, hasPerms);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Failed to add user '{}' to channel '{}' (hasPerms={}): {}", username, channel, hasPerms, e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public List<String> getChannels(String forWhom) {
         List<String> channels = new ArrayList<>();
 
@@ -97,11 +117,15 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
                 Connection db = dataSource.getConnection();
                 PreparedStatement st = db.prepareStatement(
                         """
-                            SELECT channel_name
-                            FROM channels
+                            SELECT c.channel_name
+                            FROM users_channels uc
+                                JOIN users u on uc.theuser = u.user_id
+                                JOIN channels c ON uc.channel = c.channel_id
+                            WHERE u.username = ?
                         """
                 )
         ) {
+            st.setString(1, forWhom);
             ResultSet rs = st.executeQuery();
 
             while (rs.next()) {

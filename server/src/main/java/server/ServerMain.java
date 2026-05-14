@@ -1,8 +1,10 @@
 package server;
 
 import common.networking.packets.*;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import server.commands.HelpCommand;
 import server.commands.MotdCommand;
 import server.commands.NewChannelCommand;
@@ -49,12 +51,13 @@ public class ServerMain implements AutoCloseable {
 
         // Käsud
         commands.add(new MotdCommand());
-        commands.add(new NewChannelCommand());
+        commands.add(new NewChannelCommand(chatDataStore::saveChannel, this::addUserToChannel));
         commands.add(new WhisperCommand(this::broadcastToSingleUser));
         commands.add(new HelpCommand(commands));
     }
 
     public static void main(String[] args) {
+        Configurator.setRootLevel(Level.INFO);
         try (ServerMain server = new ServerMain()) {
             server.start();
         } catch (SQLException e) {
@@ -187,5 +190,20 @@ public class ServerMain implements AutoCloseable {
         String firstWord = parts[0];
 
         return firstWord.equalsIgnoreCase(targetCommand);
+    }
+
+    private void addUserToChannel(String username, String channel, boolean hasPerms) {
+        // Salvestame andmebaasi
+       if (!chatDataStore.addUserToChannel(username, channel, hasPerms)) {
+           return;
+       }
+
+       // Kui see kasutaja on ühendatud, siis saadame ka packeti
+        for (ConnectionHandler conn : allConnectionHandlers) {
+            if (conn.getUsername().equals(username)) {
+                conn.addPacket(new AddChannelResponsePacket(channel));
+                break;
+            }
+        }
     }
 }

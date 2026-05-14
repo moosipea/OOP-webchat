@@ -43,6 +43,7 @@ public class ConnectionHandler implements Runnable {
         } catch (IOException e) {
             log.error("IO exception while running packet handler: {}", e.getMessage());
         } finally {
+            log.info("Ending connection: {}", duplexConnection);
             server.unregister(this);
             try {
                 client.close();

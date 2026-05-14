@@ -13,6 +13,8 @@ public interface ChatDataStore {
 
     void saveChannel(String channelName, boolean publicChannel);
 
+    boolean addUserToChannel(String username, String channel, boolean hasPerms);
+
     List<String> getChannels(String forWhom);
 
     List<MessageToClientPacket> retrieveMessages(RequestHistoryPacket packet);
