@@ -1,12 +1,15 @@
 # OOP rühmatöö
 
-Online chat rakendus (server + klient).
+IRC-stiilis online chat rakendus (server + klient).
 
 ## I etapi lõpuks
 On lihtne UI, teksti vormindamine ja lihtne võrgusuhtlus.
 
-## II etapiks (meil ei ole eriti plaaji ja on lihtsalt funktsioonid, mida me tahame implementeerida)
-krüpteeritud suhtlus ja kasutajad (koos registreerimise ja sisse logimisega)
+## II etapi lõpuks
+Krüpteeritud suhtlus ja kasutajad (koos registreerimise ja sisse logimisega).
+
+## III etapi lõpuks
+TODO
 
 ## Kuidas käivitada
  - Jooksuta `mvn clean package` projekti juurkaustas.
@@ -34,11 +37,11 @@ Mattias Volt (github: moosipea) <br>
 - [x] kasutajate autentimine, salasõnaga ühendamine
 - [ ] sõnumite otsimine, filtreerimine
 - [ ] sõnumite editimine ja kustutamine (editimisel vastav märge)
-- [ ]  grupichatid
+- [x]  grupichatid
     - [ ] kasutajate privileegid
     - [x] Kliendi ja serveri käsud (nagu /dm, /motd vms)
     
-- [ ] visuaalsed elemendid
+- [x] visuaalsed elemendid
 	- [x] sõnumite formatting ja renderdamine (Markdown või selle laadne)
 	- [ ] kasutajate pingimine @kasutajanimi süntaksiga 
 	- [x] kasutajatele on määratud värv (kasutajanime järgi)
