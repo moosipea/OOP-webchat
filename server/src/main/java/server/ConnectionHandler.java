@@ -20,13 +20,16 @@ public class ConnectionHandler implements Runnable {
     private final ServerMain server;
 
     private final LinkedBlockingQueue<AbstractPacket> queuedPackets = new LinkedBlockingQueue<>();
-
     private String username;
     private boolean authenticated = false;
 
     public ConnectionHandler(Socket client, ServerMain server) {
         this.client = client;
         this.server = server;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     /**
@@ -40,6 +43,7 @@ public class ConnectionHandler implements Runnable {
         } catch (IOException e) {
             log.error("IO exception while running packet handler: {}", e.getMessage());
         } finally {
+            log.info("Ending connection: {}", duplexConnection);
             server.unregister(this);
             try {
                 client.close();
@@ -57,8 +61,21 @@ public class ConnectionHandler implements Runnable {
         }
 
         switch (packet) {
-            case MessageToServerPacket msg ->
+            case MessageToServerPacket msg -> {
+                if (msg.getContent().startsWith("/")) {
+                    if (!server.tryRunCommand(msg, this)) {
+                        // Saadame error sõnumi kliendile, kuna sellist käsku serveris ei olnud
+                        addPacket(new MessageToClientPacket(
+                                msg.getTargetChannel(),
+                                null,
+                                String.format("Unknown command: '%s'", msg.getContent()),
+                                null
+                        ));
+                    }
+                } else {
                     server.broadcastMessage(msg, username);
+                }
+            }
             case GetChannelsRequestPacket ignored -> {
                 for (String channel : server.getChannelList(username)) {
                     addPacket(new AddChannelResponsePacket(channel));

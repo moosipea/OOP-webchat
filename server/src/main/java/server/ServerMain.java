@@ -1,8 +1,14 @@
 package server;
 
 import common.networking.packets.*;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
+import server.commands.HelpCommand;
+import server.commands.MotdCommand;
+import server.commands.NewChannelCommand;
+import server.commands.WhisperCommand;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -15,7 +21,9 @@ import java.security.*;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,16 +39,25 @@ public class ServerMain implements AutoCloseable {
     private final CopyOnWriteArraySet<ConnectionHandler> allConnectionHandlers = new CopyOnWriteArraySet<>();
     private final DatabaseBackend chatDataStore;
 
+    private final List<ServerCommand> commands = new ArrayList<>();
+
     public ServerMain() throws SQLException {
         chatDataStore = new DatabaseBackend();
 
         // Suvalised näidiskanalid
-        chatDataStore.saveChannel("#general");
-        chatDataStore.saveChannel("#server-loodud-kanal-1");
-        chatDataStore.saveChannel("#server-loodud-kanal-2");
+        chatDataStore.saveChannel("#general", true);
+        chatDataStore.saveChannel("#server-loodud-kanal-1", true);
+        chatDataStore.saveChannel("#server-loodud-kanal-2", true);
+
+        // Käsud
+        commands.add(new MotdCommand());
+        commands.add(new NewChannelCommand(chatDataStore::saveChannel, this::addUserToChannel));
+        commands.add(new WhisperCommand(this::broadcastToSingleUser));
+        commands.add(new HelpCommand(commands));
     }
 
     public static void main(String[] args) {
+        Configurator.setRootLevel(Level.INFO);
         try (ServerMain server = new ServerMain()) {
             server.start();
         } catch (SQLException e) {
@@ -123,10 +140,24 @@ public class ServerMain implements AutoCloseable {
         MessageToClientPacket packetToBeSent = new MessageToClientPacket(message, author, now);
 
         chatDataStore.saveMessage(packetToBeSent);
+        Set<String> allowedUsers = chatDataStore.getChannelUsers(packetToBeSent.getTargetChannel());
 
         for (ConnectionHandler conn : allConnectionHandlers) {
+            if (!allowedUsers.contains(conn.getUsername())) {
+                continue;
+            }
             conn.addPacket(packetToBeSent);
         }
+    }
+
+    public boolean broadcastToSingleUser(String target, MessageToClientPacket packet) {
+        for (ConnectionHandler conn : allConnectionHandlers) {
+            if (conn.getUsername().equals(target)) {
+                conn.addPacket(packet);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -140,5 +171,39 @@ public class ServerMain implements AutoCloseable {
 
     public boolean attemptToLogInUser(LoginRequestPacket loginRequestPacket) {
         return chatDataStore.attemptToLogInUser(loginRequestPacket);
+    }
+
+    public boolean tryRunCommand(MessageToServerPacket msg, ConnectionHandler conn) {
+        for (ServerCommand command : commands) {
+            if (isCommand(msg.getContent(), command.prefix())) {
+                command.run(msg, conn);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isCommand(String input, String targetCommand) {
+        if (input == null || input.isEmpty()) return false;
+
+        String[] parts = input.split("\\s+", 2);
+        String firstWord = parts[0];
+
+        return firstWord.equalsIgnoreCase(targetCommand);
+    }
+
+    private void addUserToChannel(String username, String channel, boolean hasPerms) {
+        // Salvestame andmebaasi
+       if (!chatDataStore.addUserToChannel(username, channel, hasPerms)) {
+           return;
+       }
+
+       // Kui see kasutaja on ühendatud, siis saadame ka packeti
+        for (ConnectionHandler conn : allConnectionHandlers) {
+            if (conn.getUsername().equals(username)) {
+                conn.addPacket(new AddChannelResponsePacket(channel));
+                break;
+            }
+        }
     }
 }

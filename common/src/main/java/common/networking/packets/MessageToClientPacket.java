@@ -25,7 +25,7 @@ public class MessageToClientPacket extends MessageToServerPacket {
         return timestamp;
     }
 
-    public String getUser(){
+    public String getUser() {
         return user;
     }
 }
