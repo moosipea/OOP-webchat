@@ -1,6 +1,9 @@
 package server;
 
 import common.networking.packets.*;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,11 +23,12 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import server.cli.*;
 
 /**
  * Serveri põhiklass.
@@ -54,14 +58,21 @@ public class ServerMain implements AutoCloseable {
         commands.add(new HelpCommand(commands));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Configurator.setRootLevel(Level.INFO);
+        
         try (ServerMain server = new ServerMain()) {
-            server.start();
+            Thread serverThread = new Thread(() -> {
+                server.start();
+            });
+            serverThread.start();
+            server.cli();
+            serverThread.join(1);
         } catch (SQLException e) {
             log.error("Failed to initialise server due to SQL exception: {}", e.getMessage());
             System.exit(1);
         }
+        System.exit(0);
     }
 
     /**
@@ -109,6 +120,32 @@ public class ServerMain implements AutoCloseable {
         } catch (IOException e) {
             // TODO: Siin võiks midagi targemat teha
             throw new RuntimeException(e);
+        }
+    }
+
+    public void cli() {
+        // Create a base CommandLine object that coordinates your commands
+        CommandLine cmdProcessor = new CommandLine(new RootShell()) // Dummy root object
+            .addSubcommand("add-channel", new AddChannelCommand((channelName, isPrivate) -> {chatDataStore.saveChannel(channelName, isPrivate);}))
+            .addSubcommand("perms", new AddUserToChannelCommand(this::addUserToChannel))
+            ;
+        try (Scanner in = new Scanner(System.in)) {
+            System.out.println("Type 'exit' to quit.");
+            
+            while (true) {
+                System.out.print("server>"); // Prompt
+                String line = in.nextLine().trim();
+                
+                if (line.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                if (line.isEmpty()) {
+                    continue;
+                }
+                String[] args = line.split("\\s+"); 
+
+                cmdProcessor.execute(args);
+            }
         }
     }
 
@@ -201,5 +238,14 @@ public class ServerMain implements AutoCloseable {
                 break;
             }
         }
+    }
+}
+
+@Command(mixinStandardHelpOptions = true)
+class RootShell implements Runnable {
+    @Override
+    public void run() {
+        // This runs if the user just presses enter or types 'myshell'
+        System.out.println("Type a command or 'help' to see available options.");
     }
 }
