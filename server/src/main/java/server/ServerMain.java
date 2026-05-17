@@ -5,10 +5,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import server.commands.HelpCommand;
-import server.commands.MotdCommand;
-import server.commands.NewChannelCommand;
-import server.commands.WhisperCommand;
+import server.commands.*;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -52,6 +49,7 @@ public class ServerMain implements AutoCloseable {
         // Käsud
         commands.add(new MotdCommand());
         commands.add(new NewChannelCommand(chatDataStore::saveChannel, this::addUserToChannel));
+        commands.add(new AddUserCommand(chatDataStore::checkHasPerms, this::addUserToChannel));
         commands.add(new WhisperCommand(this::broadcastToSingleUser));
         commands.add(new HelpCommand(commands));
     }
@@ -70,10 +68,8 @@ public class ServerMain implements AutoCloseable {
      * Käivitab serveri.
      */
     public void start() {
-
         // Kasutame virtuaalseid lõimesid, et ei peaks mingi async asjadega eraldi jamama.
         // TODO: teha port konfigureeritavaks.
-
         // TODO: kliendi poolel sama jura, abstraheerida
 
         SSLServerSocketFactory ssf;
@@ -87,7 +83,7 @@ public class ServerMain implements AutoCloseable {
         }
 
         // TODO: paroolindus
-        try (FileInputStream fis = new FileInputStream("./keystore.p12")) {
+        try (FileInputStream fis = new FileInputStream("keystore.p12")) {
             String password = "123456";
             keyStore.load(fis, password.toCharArray());
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -194,11 +190,11 @@ public class ServerMain implements AutoCloseable {
 
     private void addUserToChannel(String username, String channel, boolean hasPerms) {
         // Salvestame andmebaasi
-       if (!chatDataStore.addUserToChannel(username, channel, hasPerms)) {
-           return;
-       }
+        if (!chatDataStore.addUserToChannel(username, channel, hasPerms)) {
+            return;
+        }
 
-       // Kui see kasutaja on ühendatud, siis saadame ka packeti
+        // Kui see kasutaja on ühendatud, siis saadame ka packeti
         for (ConnectionHandler conn : allConnectionHandlers) {
             if (conn.getUsername().equals(username)) {
                 conn.addPacket(new AddChannelResponsePacket(channel));
