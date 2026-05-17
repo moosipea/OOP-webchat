@@ -15,6 +15,8 @@ public interface ChatDataStore {
 
     boolean addUserToChannel(String username, String channel, boolean hasPerms);
 
+    boolean checkHasPerms(String username, String channel);
+
     List<String> getChannels(String forWhom);
 
     List<MessageToClientPacket> retrieveMessages(RequestHistoryPacket packet);

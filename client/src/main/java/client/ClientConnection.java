@@ -75,7 +75,7 @@ public class ClientConnection implements Runnable {
 
         // TODO: sertifikaatide paremini saamine
         // TODO: sertifikaat jar faili sisse pakitud?
-        try (FileInputStream fis = new FileInputStream("../client-truststore.p12")) {
+        try (FileInputStream fis = new FileInputStream("client-truststore.p12")) {
             keyStore = KeyStore.getInstance("PKCS12");
             String password = "123456"; // FIXME: paroolindus
             keyStore.load(fis, password.toCharArray());

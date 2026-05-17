@@ -110,6 +110,32 @@ public class DatabaseBackend implements ChatDataStore, AutoCloseable {
     }
 
     @Override
+    public boolean checkHasPerms(String username, String channel) {
+        try (
+                Connection db = dataSource.getConnection();
+                PreparedStatement st = db.prepareStatement(
+                        """
+                        SELECT uc.has_perms
+                        FROM users_channels uc
+                            JOIN users u ON uc.theuser = u.user_id
+                            JOIN channels c ON uc.channel = c.channel_id
+                        WHERE u.username = ? AND c.channel_name = ?
+                        """
+                )
+        ) {
+            st.setString(1, username);
+            st.setString(2, channel);
+
+            ResultSet rs = st.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            log.error("Failed to check perms for user {} in channel {}: {}", username, channel, e.getMessage());
+        }
+
+        return false;
+    }
+
+    @Override
     public List<String> getChannels(String forWhom) {
         List<String> channels = new ArrayList<>();
 
