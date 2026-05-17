@@ -9,8 +9,8 @@ import java.util.function.BiConsumer;
 
 public class NewChannelCommand implements ServerCommand {
 
-    private BiConsumer<String, Boolean> createChannel;
-    private TriConsumer<String, String, Boolean> addUser; // see on millegipärast pärit log4j paketist, aga kasutame ära
+    private final BiConsumer<String, Boolean> createChannel;
+    private final TriConsumer<String, String, Boolean> addUser; // see on millegipärast pärit log4j paketist, aga kasutame ära
 
     public NewChannelCommand(BiConsumer<String, Boolean> createChannel, TriConsumer<String, String, Boolean> addUser) {
         this.createChannel = createChannel;
